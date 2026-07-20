@@ -1,0 +1,799 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs - MTPL APQP Management{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h1 style="margin: 0; color: #1e293b; font-size: 28px;">
+                <i class="fas fa-clipboard-list"></i> Audit Logs
+            </h1>
+            <p style="margin: 5px 0 0 0; color: #64748b;">Track all system activities and user actions</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="stats-mini" style="background: #f1f5f9; padding: 12px 20px; border-radius: 8px;">
+                <div style="font-size: 24px; font-weight: 700; color: #3b82f6;" id="totalLogsCount">-</div>
+                <div style="font-size: 12px; color: #64748b;">Total Logs</div>
+            </div>
+            <div class="stats-mini" style="background: #f1f5f9; padding: 12px 20px; border-radius: 8px;">
+                <div style="font-size: 24px; font-weight: 700; color: #10b981;" id="todayLogsCount">-</div>
+                <div style="font-size: 12px; color: #64748b;">Today</div>
+            </div>
+            <div class="stats-mini" style="background: #f1f5f9; padding: 12px 20px; border-radius: 8px;">
+                <div style="font-size: 24px; font-weight: 700; color: #ef4444;" id="failedCount">-</div>
+                <div style="font-size: 12px; color: #64748b;">Failed Today</div>
+            </div>
+            <button class="btn btn-primary" onclick="openCleanupSettings()" style="height: fit-content;" title="Cleanup Settings">
+                <i class="fas fa-cog"></i> Cleanup Settings
+            </button>
+            <button class="btn btn-primary" onclick="exportLogs()" style="height: fit-content;">
+                <i class="fas fa-download"></i> Export CSV
+            </button>
+        </div>
+    </div>
+
+    <div class="filters-bar" style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #64748b; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-search"></i> Search
+                </label>
+                <input type="text" id="searchBox" class="form-control" placeholder="Search username, action, details, IP..." 
+                       style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #64748b; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-bolt"></i> Action Type
+                </label>
+                <select id="actionFilter" class="form-control" 
+                        style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <option value="">All Actions</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #64748b; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-tag"></i> Resource Type
+                </label>
+                <select id="resourceTypeFilter" class="form-control"
+                        style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <option value="">All Resources</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #64748b; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> Status
+                </label>
+                <select id="successFilter" class="form-control"
+                        style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <option value="">All Status</option>
+                    <option value="true">Success</option>
+                    <option value="false">Failed</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #64748b; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-calendar"></i> From
+                </label>
+                <input type="date" id="dateFrom" class="form-control"
+                       style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #64748b; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-calendar"></i> To
+                </label>
+                <input type="date" id="dateTo" class="form-control"
+                       style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;">
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-primary" onclick="applyFilters()" style="padding: 8px 20px;">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+            <button class="btn btn-secondary" onclick="clearFilters()" style="padding: 8px 20px;">
+                <i class="fas fa-times"></i> Clear Filters
+            </button>
+        </div>
+    </div>
+
+    <div class="master-table-container" style="background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <table class="master-table">
+            <thead>
+                <tr>
+                    <th style="width: 150px;">Date/Time</th>
+                    <th style="width: 140px;">User</th>
+                    <th style="width: 180px;">Action</th>
+                    <th style="width: 120px;">Resource</th>
+                    <th>Details</th>
+                    <th style="width: 130px;">IP Address</th>
+                    <th style="width: 80px;">Status</th>
+                </tr>
+            </thead>
+            <tbody id="logsTableBody">
+                <tr>
+                    <td colspan="7" class="text-center" style="padding: 40px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #3b82f6;"></i>
+                        <p style="margin-top: 10px; color: #64748b;">Loading audit logs...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div id="paginationContainer" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div id="paginationInfo" style="color: #64748b;"></div>
+        <div id="paginationButtons" style="display: flex; gap: 5px;"></div>
+    </div>
+    
+    <!-- Cleanup Settings Modal -->
+    <div id="cleanupModal" class="cleanup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999999; justify-content: center; align-items: center; overflow-y: auto; padding: 20px 0;">
+        <div class="modal-content" style="background: white; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); margin: auto; max-height: 90vh; overflow-y: auto; position: relative; z-index: 1000000;">
+            <div class="modal-header" style="padding: 24px 30px; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; border-radius: 12px 12px 0 0;">
+                <h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #2c3e50;">
+                    <i class="fas fa-cog"></i> Cleanup Settings
+                </h3>
+                <button onclick="closeCleanupModal()" style="background: none; border: none; font-size: 24px; color: #6c757d; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <p style="color: #64748b; margin-bottom: 20px;">
+                    <i class="fas fa-info-circle"></i> Delete audit logs older than a specified number of days to free up database space.
+                </p>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                        Delete logs older than (days):
+                    </label>
+                    <input type="number" id="cleanupDays" min="1" value="90" class="form-control" 
+                           style="width: 100%; padding: 10px 15px; border: 1px solid #dee2e6; border-radius: 6px; font-size: 14px;"
+                           placeholder="Enter number of days">
+                    <small style="color: #6c757d; font-size: 12px; margin-top: 5px; display: block;">
+                        Recommended: 90 days or more
+                    </small>
+                </div>
+                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px; margin-bottom: 20px;">
+                    <i class="fas fa-exclamation-triangle" style="color: #856404;"></i>
+                    <strong style="color: #856404;">Warning:</strong>
+                    <span style="color: #856404;"> This action cannot be undone. Deleted logs will be permanently removed.</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 20px 30px; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 12px; background: #f8f9fa; border-radius: 0 0 12px 12px;">
+                <button onclick="closeCleanupModal()" class="btn btn-secondary" style="padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; background: #6c757d; color: white; transition: all 0.2s;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button onclick="performCleanup()" id="deleteLogsBtn" class="btn btn-danger" style="padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; background: #dc3545; color: white; transition: all 0.2s;">
+                    <i class="fas fa-trash-alt"></i> Delete Logs
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+    
+    @keyframes slideDown {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+</style>
+<script>
+    let allLogs = [];
+    let currentPage = 1;
+    let perPage = 50;
+    let totalPages = 1;
+    let totalLogs = 0;
+    let actionTypes = [];
+    let resourceTypes = [];
+
+    // Utility Functions - Define first
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function showToast(message, type = 'info') {
+        // Create toast container if it doesn't exist
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 99999;';
+            document.body.appendChild(container);
+        }
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        const bgColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+        const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
+        
+        toast.style.cssText = `
+            background: ${bgColor};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        
+        toast.innerHTML = `
+            <i class="fas fa-${icon}" style="font-size: 18px;"></i>
+            <span style="flex: 1;">${escapeHtml(message)}</span>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: white; cursor: pointer; font-size: 18px; padding: 0; opacity: 0.8;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+    
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadStats();
+        loadLogs();
+        
+        // Add event listeners for real-time search
+        document.getElementById('searchBox').addEventListener('input', debounce(applyFilters, 500));
+    });
+
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/audit-logs/stats');
+            if (!response.ok) throw new Error('Failed to load stats');
+            
+            const data = await response.json();
+            
+            document.getElementById('totalLogsCount').textContent = data.total_logs.toLocaleString();
+            document.getElementById('todayLogsCount').textContent = data.logs_today.toLocaleString();
+            document.getElementById('failedCount').textContent = data.failed_today.toLocaleString();
+            
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    async function loadLogs(page = 1) {
+        try {
+            currentPage = page;
+            const tbody = document.getElementById('logsTableBody');
+            showLoading(tbody, 'Loading audit logs...');
+            
+            // Build query params
+            const params = new URLSearchParams({
+                page: currentPage,
+                per_page: perPage
+            });
+            
+            const search = document.getElementById('searchBox').value.trim();
+            const action = document.getElementById('actionFilter').value;
+            const resourceType = document.getElementById('resourceTypeFilter').value;
+            const success = document.getElementById('successFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            
+            if (search) params.append('search', search);
+            if (action) params.append('action', action);
+            if (resourceType) params.append('resource_type', resourceType);
+            if (success) params.append('success', success);
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            
+            const response = await fetch(`/api/audit-logs?${params}`);
+            if (!response.ok) throw new Error('Failed to load logs');
+            
+            const data = await response.json();
+            allLogs = data.logs;
+            totalPages = data.total_pages;
+            totalLogs = data.total;
+            actionTypes = data.action_types;
+            resourceTypes = data.resource_types;
+            
+            // Update filter dropdowns
+            updateFilterDropdowns();
+            
+            // Display logs
+            displayLogs(allLogs);
+            
+            // Update pagination
+            updatePagination();
+            
+        } catch (error) {
+            console.error('Error loading logs:', error);
+            showError(document.getElementById('logsTableBody'), 'Failed to load audit logs. Please try again.');
+        }
+    }
+
+    function updateFilterDropdowns() {
+        const actionFilter = document.getElementById('actionFilter');
+        const resourceTypeFilter = document.getElementById('resourceTypeFilter');
+        
+        // Update action filter
+        const currentAction = actionFilter.value;
+        actionFilter.innerHTML = '<option value="">All Actions</option>';
+        actionTypes.forEach(action => {
+            const option = document.createElement('option');
+            option.value = action;
+            option.textContent = formatActionName(action);
+            actionFilter.appendChild(option);
+        });
+        actionFilter.value = currentAction;
+        
+        // Update resource type filter
+        const currentResource = resourceTypeFilter.value;
+        resourceTypeFilter.innerHTML = '<option value="">All Resources</option>';
+        resourceTypes.forEach(resource => {
+            const option = document.createElement('option');
+            option.value = resource;
+            option.textContent = resource;
+            resourceTypeFilter.appendChild(option);
+        });
+        resourceTypeFilter.value = currentResource;
+    }
+
+    function displayLogs(logs) {
+        const tbody = document.getElementById('logsTableBody');
+        
+        if (logs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h4>No Audit Logs Found</h4>
+                        <p>No logs match your current filters</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = logs.map(log => {
+            const dateTime = new Date(log.created_date);
+            const formattedDate = dateTime.toLocaleDateString('en-US', { 
+                year: 'numeric', month: 'short', day: 'numeric' 
+            });
+            const formattedTime = dateTime.toLocaleTimeString('en-US', { 
+                hour: '2-digit', minute: '2-digit', second: '2-digit' 
+            });
+            
+            const statusBadge = log.success ? 
+                '<span class="badge badge-success"><i class="fas fa-check"></i> Success</span>' :
+                '<span class="badge badge-danger"><i class="fas fa-times"></i> Failed</span>';
+            
+            const actionBadge = getActionBadge(log.action);
+            const resourceInfo = log.resource_type ? 
+                `${log.resource_type}${log.resource_id ? ` #${log.resource_id}` : ''}` : 
+                '<span style="color: #94a3b8;">-</span>';
+            
+            return `
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: #1e293b;">${formattedDate}</div>
+                        <div style="font-size: 12px; color: #64748b;">${formattedTime}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: #1e293b;">${escapeHtml(log.username || 'System')}</div>
+                        <div style="font-size: 12px; color: #64748b;">${escapeHtml(log.full_name || '-')}</div>
+                    </td>
+                    <td>${actionBadge}</td>
+                    <td>
+                        <div style="font-size: 13px; color: #475569;">${resourceInfo}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px; color: #475569; max-width: 300px; overflow: hidden; text-overflow: ellipsis;" 
+                             title="${escapeHtml(log.details || '')}">${escapeHtml(log.details || '-')}</div>
+                    </td>
+                    <td>
+                        <div style="font-family: 'Courier New', monospace; font-size: 12px; color: #475569;">
+                            ${escapeHtml(log.ip_address || '-')}
+                        </div>
+                    </td>
+                    <td style="text-align: center;">${statusBadge}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function getActionBadge(action) {
+        const actionColors = {
+            'LOGIN_SUCCESS': 'success',
+            'LOGIN_FAILED': 'danger',
+            'LOGOUT': 'info',
+            'PROJECT_CREATED': 'primary',
+            'PROJECT_UPDATED': 'warning',
+            'PROJECT_DELETED': 'danger',
+            'STAGE_UPDATED': 'warning',
+            'STAGE_COMPLETED': 'success',
+            'DOCUMENT_UPLOADED': 'primary',
+            'DOCUMENT_DELETED': 'danger'
+        };
+        
+        const color = actionColors[action] || 'secondary';
+        const formattedAction = formatActionName(action);
+        const icon = getActionIcon(action);
+        
+        return `<span class="badge badge-${color}">${icon} ${formattedAction}</span>`;
+    }
+
+    function getActionIcon(action) {
+        if (action.includes('LOGIN')) return '<i class="fas fa-sign-in-alt"></i>';
+        if (action.includes('LOGOUT')) return '<i class="fas fa-sign-out-alt"></i>';
+        if (action.includes('CREATED')) return '<i class="fas fa-plus"></i>';
+        if (action.includes('UPDATED')) return '<i class="fas fa-edit"></i>';
+        if (action.includes('DELETED')) return '<i class="fas fa-trash"></i>';
+        if (action.includes('COMPLETED')) return '<i class="fas fa-check"></i>';
+        if (action.includes('UPLOADED')) return '<i class="fas fa-upload"></i>';
+        return '<i class="fas fa-info-circle"></i>';
+    }
+
+    function formatActionName(action) {
+        return action.replace(/_/g, ' ')
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+
+    function updatePagination() {
+        const info = document.getElementById('paginationInfo');
+        const buttons = document.getElementById('paginationButtons');
+        
+        const start = (currentPage - 1) * perPage + 1;
+        const end = Math.min(currentPage * perPage, totalLogs);
+        
+        info.textContent = `Showing ${start}-${end} of ${totalLogs} logs`;
+        
+        // Generate pagination buttons
+        let html = '';
+        
+        // Previous button
+        html += `
+            <button class="btn btn-secondary" onclick="loadLogs(${currentPage - 1})" 
+                    ${currentPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+        `;
+        
+        // Page numbers
+        const maxButtons = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+        
+        if (endPage - startPage < maxButtons - 1) {
+            startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            html += `
+                <button class="btn ${i === currentPage ? 'btn-primary' : 'btn-secondary'}" 
+                        onclick="loadLogs(${i})">${i}</button>
+            `;
+        }
+        
+        // Next button
+        html += `
+            <button class="btn btn-secondary" onclick="loadLogs(${currentPage + 1})" 
+                    ${currentPage === totalPages ? 'disabled' : ''}>
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        `;
+        
+        buttons.innerHTML = html;
+    }
+
+    function applyFilters() {
+        loadLogs(1);
+    }
+
+    function clearFilters() {
+        document.getElementById('searchBox').value = '';
+        document.getElementById('actionFilter').value = '';
+        document.getElementById('resourceTypeFilter').value = '';
+        document.getElementById('successFilter').value = '';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        loadLogs(1);
+    }
+
+    async function exportLogs() {
+        try {
+            const params = new URLSearchParams();
+            
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const action = document.getElementById('actionFilter').value;
+            
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (action) params.append('action', action);
+            
+            window.location.href = `/api/audit-logs/export?${params}`;
+            showToast('Audit logs export started', 'success');
+        } catch (error) {
+            console.error('Error exporting logs:', error);
+            showToast('Failed to export logs', 'error');
+        }
+    }
+
+    function openCleanupSettings() {
+        const modal = document.getElementById('cleanupModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.style.zIndex = '999999';
+            modal.style.position = 'fixed';
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+            // Scroll modal content to top
+            setTimeout(() => {
+                const modalContent = modal.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.scrollTop = 0;
+                }
+                modal.scrollTop = 0;
+            }, 10);
+        } else {
+            console.error('Cleanup modal not found!');
+            alert('Error: Cleanup modal not found. Please refresh the page.');
+        }
+    }
+    
+    function closeCleanupModal() {
+        const modal = document.getElementById('cleanupModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    }
+
+    async function performCleanup() {
+        const daysInput = document.getElementById('cleanupDays');
+        const days = daysInput ? daysInput.value : null;
+        
+        if (!days || days < 1) {
+            showToast('Please enter a valid number of days', 'error');
+            return;
+        }
+        
+        // Close the cleanup modal first
+        closeCleanupModal();
+        
+        // Show styled confirmation dialog
+        showStyledConfirm(
+            'Confirm Deletion',
+            `Are you sure you want to delete audit logs older than ${days} days? This action cannot be undone.`,
+            async () => {
+                await executeCleanup(days);
+            }
+        );
+    }
+    
+    function showStyledConfirm(title, message, onConfirm) {
+        // Remove any existing confirm dialog
+        const existing = document.getElementById('styledConfirmDialog');
+        if (existing) existing.remove();
+        
+        // Create styled confirmation dialog
+        const dialog = document.createElement('div');
+        dialog.id = 'styledConfirmDialog';
+        dialog.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s ease-out;
+        `;
+        
+        dialog.innerHTML = `
+            <div style="background: white; border-radius: 12px; width: 90%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideDown 0.3s ease-out;">
+                <div style="padding: 24px 30px; border-bottom: 1px solid #dee2e6; background: #f8f9fa; border-radius: 12px 12px 0 0;">
+                    <h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #2c3e50;">
+                        <i class="fas fa-exclamation-triangle" style="color: #ffc107; margin-right: 8px;"></i>
+                        ${title}
+                    </h3>
+                </div>
+                <div style="padding: 30px;">
+                    <p style="margin: 0; color: #495057; font-size: 15px; line-height: 1.6;">
+                        ${message}
+                    </p>
+                </div>
+                <div style="padding: 20px 30px; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 12px; background: #f8f9fa; border-radius: 0 0 12px 12px;">
+                    <button onclick="closeStyledConfirm()" style="padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; background: #6c757d; color: white; transition: all 0.2s;">
+                        Cancel
+                    </button>
+                    <button id="styledConfirmBtn" style="padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; background: #dc3545; color: white; transition: all 0.2s;">
+                        <i class="fas fa-trash-alt" style="margin-right: 6px;"></i>Delete Logs
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(dialog);
+        document.body.style.overflow = 'hidden';
+        
+        // Add click handler for confirm button
+        document.getElementById('styledConfirmBtn').onclick = () => {
+            closeStyledConfirm();
+            onConfirm();
+        };
+        
+        // Add hover effects
+        const buttons = dialog.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.onmouseenter = () => {
+                btn.style.transform = 'translateY(-1px)';
+                btn.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            };
+            btn.onmouseleave = () => {
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = 'none';
+            };
+        });
+    }
+    
+    function closeStyledConfirm() {
+        const dialog = document.getElementById('styledConfirmDialog');
+        if (dialog) {
+            dialog.style.animation = 'fadeOut 0.2s ease-out';
+            setTimeout(() => {
+                dialog.remove();
+                document.body.style.overflow = '';
+            }, 200);
+        }
+    }
+    
+    async function executeCleanup(days) {
+        console.log('executeCleanup called with days:', days);
+        
+        try {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            // Add JWT token if available
+            if (window.JWT_TOKEN && window.JWT_TOKEN !== 'null') {
+                console.log('Using JWT token authentication');
+                headers['Authorization'] = `Bearer ${window.JWT_TOKEN}`;
+            } else {
+                console.log('Using session-based authentication');
+            }
+            
+            const url = `/api/audit-logs/cleanup?days=${days}`;
+            console.log('Fetching:', url);
+            console.log('Headers:', headers);
+            
+            showToast('Deleting audit logs...', 'info');
+            
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: headers,
+                credentials: 'same-origin'  // Include cookies for session-based auth
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            
+            let data;
+            try {
+                data = await response.json();
+                console.log('Response data:', data);
+            } catch (e) {
+                console.error('Failed to parse JSON response:', e);
+                throw new Error('Invalid response from server');
+            }
+            
+            if (!response.ok) {
+                throw new Error(data.error || data.message || 'Failed to cleanup logs');
+            }
+            
+            showToast(`Successfully deleted ${data.deleted_count} audit log(s)`, 'success');
+            loadLogs(1); // Reload the logs
+            loadStats(); // Reload stats
+        } catch (error) {
+            console.error('Error cleaning up logs:', error);
+            showToast('Failed to cleanup logs: ' + error.message, 'error');
+        }
+    }
+
+    function showLoading(element, message) {
+        element.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center" style="padding: 40px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #3b82f6;"></i>
+                    <p style="margin-top: 10px; color: #64748b;">${message}</p>
+                </td>
+            </tr>
+        `;
+    }
+
+    function showError(element, message) {
+        element.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center" style="padding: 40px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 24px; color: #ef4444;"></i>
+                    <p style="margin-top: 10px; color: #64748b;">${message}</p>
+                </td>
+            </tr>
+        `;
+    }
+</script>
+{% endblock %}

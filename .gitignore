@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Configuration files with secrets
+config.ini
+*.env
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads (user data)
+uploads/*
+!uploads/.gitkeep
+!uploads/stage_attachments/.gitkeep
+!uploads/step_attachments/.gitkeep
+
+# Data files
+*.xlsx
+*.xls
+*.csv
+Copy of *.xlsx
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

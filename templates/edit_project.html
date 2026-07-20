@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Project #{{ project.id }}</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" class="row g-3">
+                    <div class="col-12">
+                        <label for="projectName" class="form-label">Project Name</label>
+                        <input id="projectName" class="form-control" type="text" name="name" value="{{ project.name }}" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="projectHead" class="form-label">Project Head</label>
+                        <select id="projectHead" class="form-select" name="head_id">
+                            <option value="">-- None --</option>
+                            {% for u in users %}
+                            <option value="{{ u.id }}" {% if project.head_id == u.id %}selected{% endif %}>{{ u.name }} ({{ u.role }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="endDate" class="form-label">Expected End Date</label>
+                        <input id="endDate" class="form-control" type="date" name="expected_end_date" value="{{ project.expected_end_date.strftime('%Y-%m-%d') if project.expected_end_date }}" />
+                    </div>
+                    <div class="col-12 mt-4">
+                        <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save Changes</button>
+                        <a class="btn btn-secondary" href="/ui/projects/{{ project.id }}"><i class="bi bi-x-lg"></i> Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const endDateInput = document.getElementById('endDate');
+    const form = document.querySelector('form');
+    
+    // Set minimum date to project start date
+    const startDate = '{{ project.start_date.strftime("%Y-%m-%d") if project.start_date else "" }}';
+    if (startDate) {
+        endDateInput.setAttribute('min', startDate);
+    }
+    
+    // Validate on form submit
+    form.addEventListener('submit', function(e) {
+        if (endDateInput.value && startDate) {
+            const endDate = new Date(endDateInput.value);
+            const projectStartDate = new Date(startDate);
+            
+            if (endDate < projectStartDate) {
+                e.preventDefault();
+                alert('Expected End Date cannot be before the Project Start Date (' + new Date(startDate).toLocaleDateString() + ').');
+                endDateInput.focus();
+                return false;
+            }
+        }
+    });
+    
+    // Real-time validation
+    endDateInput.addEventListener('change', function() {
+        if (this.value && startDate) {
+            const endDate = new Date(this.value);
+            const projectStartDate = new Date(startDate);
+            
+            if (endDate < projectStartDate) {
+                this.setCustomValidity('Expected End Date cannot be before the Project Start Date.');
+                this.reportValidity();
+            } else {
+                this.setCustomValidity('');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

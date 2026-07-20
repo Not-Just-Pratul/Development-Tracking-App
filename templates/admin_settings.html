@@ -1,0 +1,3730 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings - MTPL APQP Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Body when modal is active */
+    body.modal-active {
+        overflow: hidden !important;
+    }
+    
+    body.modal-active .settings-container {
+        z-index: 1 !important;
+    }
+    
+    /* Settings Container */
+    .settings-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin: 30px auto;
+        max-width: 1600px;
+        overflow: hidden;
+    }
+
+    /* Custom Tabs - Now at top */
+    .settings-tabs {
+        display: flex;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 3px solid #dee2e6;
+        overflow-x: visible;
+        overflow-y: visible;
+        flex-wrap: nowrap;
+        padding: 8px 15px 0 15px;
+    }
+
+    .settings-tab {
+        flex: 0 0 auto;
+        padding: 16px 28px;
+        background: transparent;
+        border: none;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        border-bottom: 3px solid transparent;
+        color: #6c757d;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+        margin: 0 3px;
+    }
+
+    .settings-tab:hover {
+        background: rgba(255, 255, 255, 0.6);
+        color: #0d6efd;
+    }
+
+    .settings-tab.active {
+        background: white;
+        color: #0d6efd;
+        border-bottom-color: #0d6efd;
+        transform: translateY(3px);
+    }
+
+    .settings-tab i {
+        font-size: 18px;
+    }
+
+    /* Tab Content */
+    .tab-content-wrapper {
+        padding: 30px;
+        min-height: 600px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .tab-pane {
+        display: none;
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Users Tab Styles - Embedded from admin_users.html */
+    .users-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .users-header h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    .btn-add-user {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-add-user:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    }
+
+    .filter-section {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .filter-section input,
+    .filter-section select {
+        padding: 10px 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 14px;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-section input::placeholder {
+        color: #adb5bd;
+    }
+
+    /* Table Styles */
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        overflow: hidden;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+
+    .users-table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .users-table thead th {
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 700;
+        color: #495057;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .users-table tbody tr {
+        border-bottom: 1px solid #f1f3f5;
+        transition: background-color 0.2s;
+    }
+
+    .users-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .users-table tbody td {
+        padding: 15px 12px;
+        color: #495057;
+        vertical-align: middle;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+        margin-right: 12px;
+        vertical-align: middle;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .badge-success {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .badge-danger {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .badge-info {
+        background: #cff4fc;
+        color: #055160;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s;
+        margin-right: 5px;
+    }
+
+    .btn-edit {
+        background: #0d6efd;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+    }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        opacity: 0.3;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .empty-state h4 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+    }
+
+    /* Template Structure Styles */
+    .templates-header {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .phase-template-block {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 2px solid #dee2e6;
+    }
+
+    .phase-template-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .phase-template-number {
+        background: #0d6efd;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .phase-template-name {
+        flex: 1;
+        padding: 10px 15px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        background: white;
+    }
+
+    .phase-template-name:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .phase-template-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-add-stage {
+        padding: 8px 16px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-add-stage:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-delete-phase {
+        padding: 8px 12px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-delete-phase:hover {
+        background: #bb2d3b;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    }
+
+    .phase-stages-container {
+        background: white;
+        border-radius: 8px;
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+
+    .stages-table-header {
+        display: grid;
+        grid-template-columns: 40px minmax(300px, 500px) 90px 90px 130px 100px 60px;
+        gap: 15px;
+        padding: 8px 15px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        font-weight: 700;
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .stage-template-item {
+        display: grid;
+        grid-template-columns: 40px minmax(300px, 500px) 90px 90px 130px 100px 60px;
+        gap: 15px;
+        padding: 8px 15px;
+        border-bottom: 1px solid #f1f3f5;
+        align-items: center;
+        transition: background-color 0.2s;
+        min-height: 50px;
+    }
+
+    .stage-template-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .stage-template-item:last-child {
+        border-bottom: none;
+    }
+
+    .stage-col-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stage-col-name {
+        display: flex;
+        align-items: center;
+    }
+
+    .stage-col-dept,
+    .stage-col-user,
+    .stage-col-responsible,
+    .stage-col-duration {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stage-col-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stage-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: #e7f3ff;
+        color: #0d6efd;
+        border-radius: 50%;
+        font-weight: 600;
+        font-size: 11px;
+    }
+
+    .stage-name-input {
+        width: 100%;
+        padding: 4px 8px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 12px;
+        transition: all 0.2s;
+        line-height: 1.4;
+        min-height: 38px;
+        max-height: 60px;
+        resize: none;
+        overflow-y: auto;
+        font-family: inherit;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .stage-name-input:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .stage-select-input {
+        width: 100%;
+        padding: 4px 6px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 11px;
+        transition: all 0.2s;
+        background: white;
+        cursor: pointer;
+        height: 32px;
+    }
+
+    .stage-select-input:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .stage-select-input:hover {
+        border-color: #adb5bd;
+    }
+
+    .stage-duration-input {
+        width: 100%;
+        padding: 4px 6px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 11px;
+        text-align: center;
+        transition: all 0.2s;
+        height: 32px;
+    }
+
+    .stage-duration-input:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+
+    .btn-edit-field {
+        width: 100%;
+        padding: 8px 12px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        text-align: left;
+        color: #495057;
+    }
+
+    .btn-edit-field:hover {
+        border-color: #0d6efd;
+        background: #e7f3ff;
+        color: #0d6efd;
+    }
+
+    .btn-edit-field i {
+        font-size: 14px;
+        opacity: 0.7;
+    }
+
+    .btn-edit-field span {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .btn-delete-stage {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-delete-stage:hover {
+        background: #bb2d3b;
+        transform: scale(1.05);
+    }
+
+    .templates-empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #6c757d;
+    }
+
+    .templates-empty-state i {
+        font-size: 80px;
+        opacity: 0.3;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .templates-empty-state h4 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #495057;
+    }
+
+    .templates-empty-state p {
+        font-size: 15px;
+    }
+
+    /* Toggle Switch Styles */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+        margin: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #dc3545;
+        transition: 0.3s;
+        border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #28a745;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+    }
+
+    .toggle-slider:hover {
+        opacity: 0.9;
+    }
+
+    /* Location Badge Styles */
+    .location-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        margin: 2px;
+        background: #e7f3ff;
+        color: #0d6efd;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .location-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        max-width: 300px;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #0d6efd;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .settings-container {
+            margin: 20px;
+            border-radius: 8px;
+        }
+
+        .settings-header {
+            padding: 20px;
+        }
+
+        .settings-header h2 {
+            font-size: 22px;
+        }
+
+        .settings-tab {
+            padding: 15px 20px;
+            font-size: 14px;
+        }
+
+        .tab-content-wrapper {
+            padding: 20px;
+        }
+
+        .users-table {
+            font-size: 12px;
+        }
+
+        .filter-section {
+            flex-direction: column;
+        }
+
+        .filter-section input,
+        .filter-section select {
+            width: 100%;
+        }
+    }
+
+    /* Master Modal Styles */
+    .master-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: -1;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    
+    /* When modal is shown - using class instead of style attribute */
+    .master-modal.modal-open {
+        display: flex !important;
+        pointer-events: auto !important;
+        z-index: 999999 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    .master-modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: slideDown 0.3s ease-out;
+        pointer-events: auto;
+        position: relative;
+        z-index: 1000000 !important;
+    }
+
+    .master-modal-header {
+        padding: 24px 30px;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .master-modal-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .master-modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .master-modal-close:hover {
+        background: #e9ecef;
+        color: #2c3e50;
+    }
+
+    .master-modal-body {
+        padding: 30px;
+    }
+
+    .master-modal-footer {
+        padding: 20px 30px;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        background: #f8f9fa;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .btn-modal {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-modal-primary, .btn-modal.primary {
+        background: #0d6efd;
+        color: white;
+    }
+
+    .btn-modal-primary:hover, .btn-modal.primary:hover {
+        background: #0b5ed7;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+    }
+
+    .btn-modal-secondary, .btn-modal.secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-modal-secondary:hover, .btn-modal.secondary:hover {
+        background: #5c636a;
+    }
+
+    .btn-modal-danger, .btn-modal.danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-modal-danger:hover, .btn-modal.danger:hover {
+        background: #bb2d3b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-modal-success, .btn-modal.success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-modal-success:hover, .btn-modal.success:hover {
+        background: #218838;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Settings Container -->
+<div class="settings-container">
+    <!-- Tab Navigation -->
+    <div class="settings-tabs">
+        <button class="settings-tab active" onclick="switchTab('companies', this)">
+            <i class="fas fa-building"></i>
+            <span>Companies</span>
+        </button>
+        <button class="settings-tab" onclick="switchTab('departments', this)">
+            <i class="fas fa-sitemap"></i>
+            <span>Departments</span>
+        </button>
+        <button class="settings-tab" onclick="switchTab('designations', this)">
+            <i class="fas fa-id-badge"></i>
+            <span>Designations</span>
+        </button>
+        <button class="settings-tab" onclick="switchTab('locations', this)">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Locations</span>
+        </button>
+        <button class="settings-tab" onclick="switchTab('templates', this)">
+            <i class="fas fa-layer-group"></i>
+            <span>Templates</span>
+        </button>
+        <button class="settings-tab" onclick="switchTab('users', this)">
+            <i class="fas fa-users"></i>
+            <span>Users</span>
+        </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content-wrapper">
+        <!-- Companies Tab -->
+        <div id="companies-tab" class="tab-pane active">
+            <div class="settings-action-bar">
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="companySearch" placeholder="Search companies..." onkeyup="filterCompanies()">
+                    </div>
+                </div>
+                <button class="btn-action btn-primary" onclick="openCompanyModal()">
+                    <i class="fas fa-plus"></i> Add Company
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Company Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companiesTableBody">
+                        <tr><td colspan="3" class="empty-state">Loading companies...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Departments Tab -->
+        <div id="departments-tab" class="tab-pane">
+            <div class="settings-action-bar">
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="departmentSearch" placeholder="Search departments..." onkeyup="filterDepartments()">
+                    </div>
+                </div>
+                <button class="btn-action btn-primary" onclick="openDepartmentModal()">
+                    <i class="fas fa-plus"></i> Add Department
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Department Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="departmentsTableBody">
+                        <tr><td colspan="3" class="empty-state">Loading departments...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Designations Tab -->
+        <div id="designations-tab" class="tab-pane">
+            <div class="settings-action-bar">
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="designationSearch" placeholder="Search designations..." onkeyup="filterDesignations()">
+                    </div>
+                </div>
+                <button class="btn-action btn-primary" onclick="openDesignationModal()">
+                    <i class="fas fa-plus"></i> Add Designation
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Designation Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="designationsTableBody">
+                        <tr><td colspan="3" class="empty-state">Loading designations...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Locations Tab -->
+        <div id="locations-tab" class="tab-pane">
+            <div class="settings-action-bar">
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="locationSearch" placeholder="Search locations..." onkeyup="filterLocations()">
+                    </div>
+                </div>
+                <button class="btn-action btn-primary" onclick="openLocationModal()">
+                    <i class="fas fa-plus"></i> Add Location
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Location Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="locationsTableBody">
+                        <tr><td colspan="3" class="empty-state">Loading locations...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Templates Tab -->
+        <div id="templates-tab" class="tab-pane">
+            <div class="templates-header">
+                <button class="btn-action btn-primary" onclick="addNewPhase()">
+                    <i class="fas fa-plus"></i> Add Phase
+                </button>
+                <button class="btn-action btn-success" onclick="saveTemplateStructureManually()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); margin-left: 10px;">
+                    <i class="fas fa-save"></i> Save Template
+                </button>
+            </div>
+            <div id="templatesPhasesContainer">
+                <!-- Phases and stages will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users-tab" class="tab-pane">
+            <div class="settings-action-bar">
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="userSearch" placeholder="Search users..." onkeyup="filterUsers()">
+                    </div>
+                </div>
+                <button class="btn-action btn-primary" onclick="openUserModal()">
+                    <i class="fas fa-user-plus"></i> Add User
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table users-table">
+                    <thead>
+                        <tr>
+                            <th>User Type</th>
+                            <th>User Information</th>
+                            <th>Status</th>
+                            <th>Locations</th>
+                            <th>Last Login</th>
+                            <th>Created</th>
+                            <th>Companies</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="8" class="empty-state">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Debug: Check JWT token availability
+console.log('Admin Settings Page - JWT Token Status:', {
+    exists: !!window.JWT_TOKEN,
+    value: window.JWT_TOKEN ? 'Present (length: ' + window.JWT_TOKEN.length + ')' : 'Missing',
+    type: typeof window.JWT_TOKEN
+});
+
+// ========================================
+// JWT TOKEN REFRESH FUNCTION
+// ========================================
+async function refreshJWTToken() {
+    try {
+        console.log('Refreshing JWT token...');
+        const response = await fetch('/api/refresh-token', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.token) {
+                window.JWT_TOKEN = data.token;
+                console.log('JWT token refreshed successfully');
+                return true;
+            }
+        }
+        
+        // If refresh fails, reload page to get new session
+        console.warn('Token refresh failed, reloading page...');
+        window.location.reload();
+        return false;
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        window.location.reload();
+        return false;
+    }
+}
+
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ========================================
+// FORWARD DECLARATIONS - Tab loading functions defined later
+// ========================================
+let loadUsersTab, loadDepartmentsTab, loadCompaniesTab, loadLocationsTab, loadDesignationsTab;
+
+// ========================================
+// TAB SWITCHING - DEFINED EARLY
+// ========================================
+function switchTab(tabName, element) {
+    // Remove active class from all tabs
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tab panes
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+    });
+    
+    // Add active class to clicked tab
+    if (element) {
+        element.classList.add('active');
+    }
+    
+    // Show corresponding tab pane
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Load content based on tab
+    if (tabName === 'companies') {
+        loadCompaniesTab();
+    } else if (tabName === 'departments') {
+        loadDepartmentsTab();
+    } else if (tabName === 'designations') {
+        loadDesignationsTab();
+    } else if (tabName === 'locations') {
+        loadLocationsTab();
+    } else if (tabName === 'templates') {
+        loadTemplatesTab();
+    } else if (tabName === 'users') {
+        loadUsersTab();
+    }
+}
+
+// ========================================
+// USERS TAB FUNCTIONS
+// ========================================
+let allUsers = [];
+let allLocations = [];
+let allApplications = [];
+
+// Preload users data immediately (before DOM ready)
+let usersPreloadPromise = fetch('/api/users')
+    .then(response => response.json())
+    .then(data => {
+        if (data.users) {
+            allUsers = data.users;
+            return allUsers;
+        }
+        return [];
+    })
+    .catch(error => {
+        return [];
+    });
+
+loadUsersTab = async function() {
+    // Make sure the tab exists before trying to load users
+    const usersTab = document.getElementById('users-tab');
+    if (!usersTab) {
+        return;
+    }
+    
+    // Don't wait for all data - load users immediately and others in background
+    loadUsers(); // Load and display users right away
+    
+    // Load supporting data in background (don't await)
+    if (!window.usersDataLoaded) {
+        Promise.all([
+            loadLocations(),
+            loadCompanies(),
+            loadDepartments(),
+            loadApplications()
+        ]).then(() => {
+            window.usersDataLoaded = true;
+        }).catch(error => {
+        });
+    }
+};
+
+async function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    
+    try {
+        // Use preloaded data if available
+        if (allUsers.length > 0) {
+            displayUsers(allUsers);
+            return;
+        }
+        
+        // Otherwise wait for the preload promise
+        await usersPreloadPromise;
+        
+        if (allUsers.length > 0) {
+            displayUsers(allUsers);
+            return;
+        }
+        
+        // If still no data, fetch fresh
+        const response = await fetch('/api/users');
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load users');
+        }
+        
+        allUsers = data.users || [];
+        displayUsers(allUsers);
+    } catch (error) {
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>Failed to load users</h4>
+                        <p>${escapeHtml(error.message)}</p>
+                    </td>
+                </tr>
+            `;
+        }
+        showToast('Failed to load users: ' + error.message, 'error');
+    }
+}
+
+async function loadLocations() {
+    try {
+        const response = await fetch('/api/locations');
+        const data = await response.json();
+        allLocations = data.locations || [];
+    } catch (error) {
+        allLocations = [];
+    }
+}
+
+async function loadApplications() {
+    try {
+        const response = await fetch('/api/applications');
+        const data = await response.json();
+        allApplications = data.applications || [];
+    } catch (error) {
+        allApplications = [];
+    }
+}
+
+// Permissions removed - using role-based access control now
+
+function displayUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+    
+    // Safety check - if tbody doesn't exist, the tab isn't loaded yet
+    if (!tbody) {
+        return;
+    }
+    
+    if (users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h4>No users found</h4>
+                    <p>Try adjusting your search filters or click "Add New User" to create one</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = users.map(user => {
+        // Format locations - show one below each other
+        let locationsDisplay = '<span style="color: #6c757d; font-size: 13px;">No locations</span>';
+        if (user.locations && user.locations.length > 0) {
+            locationsDisplay = user.locations.map(loc => 
+                `<div style="margin-bottom: 4px;"><span class="location-badge">${escapeHtml(loc.code)}</span></div>`
+            ).join('');
+        }
+        
+        // Format companies - show company codes one below each other
+        let companiesDisplay = '<span style="color: #6c757d; font-size: 13px;">No companies</span>';
+        if (user.companies && user.companies.length > 0) {
+            companiesDisplay = user.companies.map(comp => 
+                `<div style="margin-bottom: 4px;"><span class="location-badge">${escapeHtml(comp.code)}</span></div>`
+            ).join('');
+        }
+        
+        const statusClass = user.is_active ? 'success' : 'danger';
+        const statusText = user.is_active ? 'Active' : 'Inactive';
+        
+        const createdDate = user.created_date ? new Date(user.created_date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        }) : 'N/A';
+        
+        const lastLogin = user.last_login ? new Date(user.last_login).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }) : '<span style="color: #6c757d;">Never</span>';
+        
+        // Format role with badge
+        const roleClass = user.role === 'admin' ? 'primary' : 'secondary';
+        const roleText = user.role === 'admin' ? 'Admin' : 'User';
+        const roleBgColor = user.role === 'admin' ? '#0d6efd' : '#6c757d';
+        const roleDisplay = `<span class="badge" style="font-size: 13px; background: ${roleBgColor}; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-weight: 600;">${roleText}</span>`;
+        
+        return `
+            <tr>
+                <td style="text-align: center;">${roleDisplay}</td>
+                <td>
+                    <div style="display: flex; align-items: center;">
+                        <span class="user-avatar">${user.username.charAt(0).toUpperCase()}</span>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; font-size: 14px;">${escapeHtml(user.username)}</div>
+                            ${user.full_name ? `<div style="color: #6c757d; font-size: 12px;">${escapeHtml(user.full_name)}</div>` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <span class="badge badge-${statusClass}">${statusText}</span>
+                </td>
+                <td>${locationsDisplay}</td>
+                <td style="font-size: 13px; color: #6c757d;">${lastLogin}</td>
+                <td style="font-size: 13px; color: #6c757d;">${createdDate}</td>
+                <td>${companiesDisplay}</td>
+                <td style="text-align: center;">
+                    <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                        ${!user.is_super_admin ? `
+                            <label class="toggle-switch" title="${user.is_active ? 'Disable User' : 'Enable User'}">
+                                <input type="checkbox" ${user.is_active ? 'checked' : ''} 
+                                       onchange="toggleUserStatus(${user.id}, this.checked, '${escapeHtml(user.username)}')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        ` : `
+                            <label class="toggle-switch" title="Super Admin - Always Active">
+                                <input type="checkbox" checked disabled>
+                                <span class="toggle-slider" style="opacity: 0.5; cursor: not-allowed;"></span>
+                            </label>
+                        `}
+                        <button class="btn-action btn-edit" data-user-id="${user.id}" data-action="edit-user">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        ${!user.is_super_admin ? `
+                            <button class="btn-action btn-delete" data-user-id="${user.id}" data-username="${escapeHtml(user.username)}" data-action="delete-user">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterUsers() {
+    const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    const filtered = allUsers.filter(user => {
+        const matchesSearch = !searchTerm || 
+            user.username.toLowerCase().includes(searchTerm) ||
+            (user.full_name && user.full_name.toLowerCase().includes(searchTerm));
+        
+        const matchesStatus = !statusFilter || 
+            (statusFilter === 'active' && user.is_active) ||
+            (statusFilter === 'inactive' && !user.is_active);
+        
+        return matchesSearch && matchesStatus;
+    });
+    
+    displayUsers(filtered);
+}
+
+async function openUserModal(userId = null) {
+    const isEdit = userId !== null;
+    let user = null;
+    
+    // Ensure all supporting data is loaded
+    if (allLocations.length === 0) {
+        await loadLocations();
+    }
+    if (allCompanies.length === 0) {
+        await loadCompanies();
+    }
+    if (allDepartments.length === 0) {
+        await loadDepartments();
+    }
+    if (allApplications.length === 0) {
+        await loadApplications();
+    }
+    
+    // Check if we have the required data
+    if (allLocations.length === 0) {
+        showToast('Cannot open user form: No locations available. Please add locations first.', 'error');
+        return;
+    }
+    
+    if (isEdit) {
+        try {
+            const response = await fetch(`/api/settings/users/${userId}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+            user = data.user;
+        } catch (error) {
+            showToast('Failed to load user data: ' + error.message, 'error');
+            return;
+        }
+    }
+    
+    // Create locations checkboxes
+    const locationsHTML = allLocations.map(loc => {
+        const isChecked = user && user.locations && user.locations.some(ul => ul.id === loc.id);
+        return `
+            <label style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" 
+                   onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" name="locations" value="${loc.id}" ${isChecked ? 'checked' : ''} 
+                       style="margin-right: 10px; cursor: pointer;" 
+                       data-location-id="${loc.id}" 
+                       data-location-name="${escapeHtml(loc.name)}">
+                <span style="font-size: 14px;">${escapeHtml(loc.name)} (${escapeHtml(loc.code)})</span>
+            </label>
+        `;
+    }).join('');
+    
+    if (!locationsHTML) {
+        showToast('No locations available. Please add locations first.', 'error');
+        return;
+    }
+    
+    
+    // Create companies checkboxes
+    const companiesHTML = allCompanies.map(comp => {
+        const isChecked = user && user.companies && user.companies.some(uc => uc.id === comp.id);
+        return `
+            <label style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" 
+                   onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" name="companies" value="${comp.id}" ${isChecked ? 'checked' : ''} 
+                       style="margin-right: 10px; cursor: pointer;">
+                <span style="font-size: 14px;">${escapeHtml(comp.company_name)} (${escapeHtml(comp.company_code)})</span>
+            </label>
+        `;
+    }).join('');
+    
+    // Create departments checkboxes
+    const departmentsHTML = allDepartments.map(dept => {
+        const isChecked = user && user.departments && user.departments.some(ud => ud.id === dept.id);
+        return `
+            <label style="display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s;" 
+                   onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                <input type="checkbox" name="departments" value="${dept.id}" ${isChecked ? 'checked' : ''} 
+                       style="margin-right: 10px; cursor: pointer;">
+                <span style="font-size: 14px;">${escapeHtml(dept.department_name)}</span>
+            </label>
+        `;
+    }).join('');
+    
+    // Create applications checkboxes
+    const applicationsHTML = allApplications.map(app => {
+        const isChecked = user && user.applications && user.applications.some(ua => ua.id === app.id);
+        return `
+            <label style="display: flex; align-items: center; padding: 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: 1px solid #dee2e6; margin-bottom: 8px;" 
+                   onmouseover="this.style.background='#f8f9fa'; this.style.borderColor='#0d6efd'" 
+                   onmouseout="this.style.background='transparent'; this.style.borderColor='#dee2e6'">
+                <input type="checkbox" name="applications" value="${app.id}" ${isChecked ? 'checked' : ''} 
+                       style="margin-right: 12px; cursor: pointer; width: 18px; height: 18px;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="${app.icon || 'fas fa-cube'}" style="font-size: 24px; color: #0d6efd; width: 30px; text-align: center;"></i>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px; color: #2c3e50;">${escapeHtml(app.name)}</div>
+                            ${app.description ? `<div style="font-size: 12px; color: #6c757d; margin-top: 2px;">${escapeHtml(app.description)}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </label>
+        `;
+    }).join('');
+    
+    const modalBody = `
+        <form id="userForm" onsubmit="saveUser(event, ${userId}); return false;">
+            <!-- Row 1: Username and Password -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        Username <span style="color: #dc3545;">*</span>
+                    </label>
+                    <input type="text" name="username" required 
+                           value="${user ? escapeHtml(user.username) : ''}"
+                           ${isEdit ? 'readonly' : ''}
+                           style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; ${isEdit ? 'background: #f8f9fa;' : ''}"
+                           placeholder="Enter username">
+                </div>
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        Password ${isEdit ? '' : '<span style="color: #dc3545;">*</span>'}
+                    </label>
+                    <input type="password" name="password" ${isEdit ? '' : 'required'}
+                           style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;"
+                           placeholder="${isEdit ? 'Leave empty to keep current password' : 'Minimum 4 characters'}">
+                </div>
+            </div>
+            
+            <!-- Row 2: User Type and Full Name -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        User Type <span style="color: #dc3545;">*</span>
+                    </label>
+                    <select name="role" required 
+                            style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                        <option value="user" ${!user || user.role === 'user' ? 'selected' : ''}>User (Dashboard Only)</option>
+                        <option value="admin" ${user && user.role === 'admin' ? 'selected' : ''}>Admin (Full Access)</option>
+                    </select>
+                    <small style="color: #6c757d; font-size: 12px; display: block; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> User can only access Dashboard. Admin has full system access.
+                    </small>
+                </div>
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        Full Name
+                    </label>
+                    <input type="text" name="full_name" 
+                           value="${user ? escapeHtml(user.full_name || '') : ''}"
+                           style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;"
+                           placeholder="Enter full name">
+                </div>
+            </div>
+            
+            <!-- Row: Locations and Companies side by side -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <!-- Locations -->
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 12px; font-size: 14px; display: block;">
+                        Locations <span style="color: #dc3545;">*</span>
+                        <span style="color: #dc3545; font-size: 11px; font-weight: 500; margin-left: 5px;">(Required - At least one)</span>
+                    </label>
+                    <div id="locationsContainer" style="max-height: 200px; overflow-y: auto; border: 2px solid #dee2e6; border-radius: 6px; padding: 10px; background: #f8f9fa;">
+                        ${locationsHTML || '<p style="color: #dc3545; text-align: center; padding: 20px; font-weight: 600;"><i class="fas fa-exclamation-triangle"></i> No locations available - Please add locations first</p>'}
+                    </div>
+                    <small style="color: #6c757d; font-size: 11px; display: block; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> Select at least one location. Users must be assigned to a location.
+                    </small>
+                </div>
+                
+                <!-- Companies -->
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 12px; font-size: 14px; display: block;">
+                        Companies
+                    </label>
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px;">
+                        ${companiesHTML || '<p style="color: #6c757d; text-align: center; padding: 20px;">No companies available</p>'}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row: Applications and Departments side by side -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <!-- Applications -->
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 12px; font-size: 14px; display: block;">
+                        Application Access
+                    </label>
+                    <small style="color: #6c757d; font-size: 12px; display: block; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle"></i> Select which applications this user can access. Admin users automatically have access to all applications.
+                    </small>
+                    <div style="max-height: 350px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px;">
+                        ${applicationsHTML || '<p style="color: #6c757d; text-align: center; padding: 20px;">No applications available</p>'}
+                    </div>
+                </div>
+                
+                <!-- Departments -->
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 12px; font-size: 14px; display: block;">
+                        Departments
+                    </label>
+                    <small style="color: #6c757d; font-size: 12px; display: block; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle"></i> Select the departments this user belongs to.
+                    </small>
+                    <div style="max-height: 350px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px;">
+                        ${departmentsHTML || '<p style="color: #6c757d; text-align: center; padding: 20px;">No departments available</p>'}
+                    </div>
+                </div>
+            </div>
+        </form>
+    `;
+    
+    openMasterModal({
+        title: isEdit ? '<i class="fas fa-edit"></i> Edit User' : '<i class="fas fa-plus"></i> Add New User',
+        body: modalBody,
+        size: 'large',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-save"></i> Save User',
+                class: 'btn-modal primary',
+                onclick: () => {
+                    const form = document.getElementById('userForm');
+                    if (form) {
+                        // Trigger the form's onsubmit handler
+                        const submitEvent = new Event('submit', { cancelable: true, bubbles: true });
+                        form.dispatchEvent(submitEvent);
+                    } else {
+                        showToast('Form not found!', 'error');
+                    }
+                }
+            }
+        ]
+    });
+}
+
+// Permission helper functions removed - using role-based access control now
+
+async function saveUser(event, userId = null) {
+    event.preventDefault();
+    
+    const form = document.getElementById('userForm');
+    if (!form) {
+        showToast('Form not found!', 'error');
+        return;
+    }
+    
+    const formData = new FormData(form);
+    
+    // Collect checked locations
+    const locationCheckboxes = form.querySelectorAll('input[name="locations"]:checked');
+    const locations = Array.from(locationCheckboxes).map(cb => {
+        const id = parseInt(cb.value, 10);
+        return id;
+    }).filter(id => !isNaN(id));
+    
+    // Collect checked companies
+    const companyCheckboxes = form.querySelectorAll('input[name="companies"]:checked');
+    const companies = Array.from(companyCheckboxes).map(cb => parseInt(cb.value, 10)).filter(id => !isNaN(id));
+    
+    // Collect checked departments
+    const departmentCheckboxes = form.querySelectorAll('input[name="departments"]:checked');
+    const departments = Array.from(departmentCheckboxes).map(cb => parseInt(cb.value, 10)).filter(id => !isNaN(id));
+    
+    // Collect checked applications
+    const applicationCheckboxes = form.querySelectorAll('input[name="applications"]:checked');
+    const applications = Array.from(applicationCheckboxes).map(cb => parseInt(cb.value, 10)).filter(id => !isNaN(id));
+    
+    const userData = {
+        username: formData.get('username')?.trim(),
+        role: formData.get('role')?.trim() || 'user',
+        full_name: formData.get('full_name')?.trim() || '',
+        locations: locations,
+        companies: companies,
+        departments: departments,
+        applications: applications
+    };
+    
+    // Validate username
+    if (!userData.username) {
+        showToast('Username is required', 'error');
+        return;
+    }
+    
+    // Handle password - required for new users, optional for edit
+    const password = formData.get('password')?.trim();
+    if (!userId && !password) {
+        showToast('Password is required for new users', 'error');
+        return;
+    }
+    if (password) {
+        if (password.length < 4) {
+            showToast('Password must be at least 4 characters', 'error');
+            return;
+        }
+        userData.password = password;
+    }
+    
+    // Validate locations - MUST have at least one
+    if (!userData.locations || userData.locations.length === 0) {
+        showToast('Please select at least one location. This is required for all users.', 'error');
+        // Highlight the locations section
+        const locationsContainer = form.querySelector('input[name="locations"]')?.closest('div');
+        if (locationsContainer) {
+            locationsContainer.style.border = '2px solid #dc3545';
+            locationsContainer.style.borderRadius = '6px';
+            setTimeout(() => {
+                locationsContainer.style.border = '';
+            }, 3000);
+        }
+        return;
+    }
+    
+    try {
+        const url = userId ? `/api/settings/users/${userId}` : '/api/settings/users';
+        const method = userId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: { 
+                'Content-Type': 'application/json'
+                // JWT token is automatically added by fetch wrapper in base.html
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            const text = await response.text();
+            throw new Error(`Server returned invalid JSON (Status ${response.status}): ${text.substring(0, 200)}`);
+        }
+        
+        if (!response.ok) {
+            throw new Error(data.error || `Failed to save user (Status: ${response.status})`);
+        }
+        
+        showToast(data.message || 'User saved successfully', 'success');
+        closeMasterModal();
+        await loadUsers(); // Wait for reload to complete
+    } catch (error) {
+        showToast(error.message || 'Failed to save user. Please check the console for details.', 'error');
+    }
+}
+
+function editUser(userId) {
+    openUserModal(userId);
+}
+
+// Ensure all functions are globally accessible
+window.editUser = editUser;
+window.deleteUser = deleteUser;
+window.toggleUserStatus = toggleUserStatus;
+window.editDepartment = editDepartment;
+window.deleteDepartment = deleteDepartment;
+window.editCompany = editCompany;
+window.deleteCompany = deleteCompany;
+window.editLocation = editLocation;
+window.deleteLocation = deleteLocation;
+
+function deleteUser(userId, username) {
+    const modalBody = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 64px; color: #dc3545; margin-bottom: 20px;">
+                <i class="fas fa-user-slash"></i>
+            </div>
+            <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 22px;">Are you sure?</h4>
+            <p style="color: #6c757d; font-size: 15px; line-height: 1.6;">
+                You are about to delete user <span style="font-weight: 700; color: #dc3545;">${escapeHtml(username)}</span>.
+            </p>
+            <p style="margin-top: 15px; color: #6c757d; font-size: 15px;">This action cannot be undone.</p>
+        </div>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-exclamation-triangle"></i> Confirm Delete',
+        body: modalBody,
+        size: 'small',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-trash"></i> Delete User',
+                class: 'btn-modal danger',
+                onclick: async () => {
+                    try {
+                        const response = await fetch(`/api/settings/users/${userId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to delete user');
+                        }
+                        
+                        showToast(data.message || 'User deleted successfully', 'success');
+                        closeMasterModal();
+                        loadUsers();
+                    } catch (error) {
+                        showToast(error.message || 'Failed to delete user', 'error');
+                    }
+                }
+            }
+        ]
+    });
+}
+
+async function toggleUserStatus(userId, isActive, username) {
+    try {
+        const action = isActive ? 'enable' : 'disable';
+        const response = await fetch(`/api/settings/users/${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: isActive })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || `Failed to ${action} user`);
+        }
+        
+        showToast(`User "${username}" ${isActive ? 'enabled' : 'disabled'} successfully`, 'success');
+        loadUsers();
+    } catch (error) {
+        showToast(error.message || 'Failed to update user status', 'error');
+        // Reload to reset toggle state
+        loadUsers();
+    }
+}
+
+// ========================================
+// LOCATIONS TAB FUNCTIONS
+// ========================================
+
+loadLocationsTab = function() {
+    loadLocationsData();
+}
+
+async function loadLocationsData() {
+    try {
+        const response = await fetch('/api/locations');
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load locations');
+        }
+        
+        // Sort locations alphabetically by name
+        const sortedLocations = (data.locations || []).sort((a, b) => {
+            return (a.name || '').localeCompare(b.name || '');
+        });
+        
+        // Update both global arrays so user modal also gets updated locations
+        allLocations = sortedLocations;
+        window.allLocations = sortedLocations;
+        
+        displayLocations(sortedLocations);
+    } catch (error) {
+        showToast('Failed to load locations: ' + error.message, 'error');
+    }
+}
+
+function displayLocations(locations) {
+    const tbody = document.getElementById('locationsTableBody');
+    
+    
+    // If tbody doesn't exist, the tab hasn't been loaded yet
+    if (!tbody) {
+        return;
+    }
+    
+    if (locations.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                    <i class="fas fa-map-marker-alt" style="font-size: 64px; opacity: 0.3; margin-bottom: 20px; display: block;"></i>
+                    <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">No locations found</h4>
+                    <p style="font-size: 14px;">Click "Add New Location" to create your first location</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = locations.map(location => {
+        return `
+            <tr>
+                <td>
+                    <span style="font-weight: 600; color: #0d6efd;">${escapeHtml(location.code)}</span>
+                </td>
+                <td>
+                    <span style="font-weight: 500;">${escapeHtml(location.name)}</span>
+                </td>
+                <td>
+                    <button class="btn-action btn-edit" onclick="editLocation(${location.id}, '${escapeHtml(location.code)}', '${escapeHtml(location.name)}')">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn-action btn-delete" onclick="deleteLocation(${location.id}, '${escapeHtml(location.name)}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Store all locations for filtering
+    window.allLocations = locations;
+}
+
+function filterLocations() {
+    const searchTerm = document.getElementById('locationSearch').value.toLowerCase();
+    
+    // Check if allLocations exists
+    if (!window.allLocations || !Array.isArray(window.allLocations)) {
+        return;
+    }
+    
+    const filtered = window.allLocations.filter(location => 
+        location.code.toLowerCase().includes(searchTerm) ||
+        location.name.toLowerCase().includes(searchTerm)
+    );
+    displayLocations(filtered);
+}
+
+function openLocationModal(locationId = null, locationCode = '', locationName = '') {
+    const isEdit = locationId !== null;
+    
+    const modalBody = `
+        <form id="locationForm" onsubmit="saveLocation(event); return false;">
+            <input type="hidden" id="location_id" value="${locationId || ''}">
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                    Location Code <span style="color: #dc3545;">*</span>
+                </label>
+                <input type="text" id="location_code" name="code" required 
+                       value="${escapeHtml(locationCode)}"
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; text-transform: uppercase; ${isEdit ? 'background-color: #e9ecef; cursor: not-allowed;' : ''}"
+                       placeholder="e.g., HQ, BR1, WH2"
+                       ${isEdit ? 'readonly' : ''}
+                       oninput="this.value = this.value.toUpperCase()">
+                ${isEdit ? '<small style="color: #666; display: block; margin-top: 5px;">Location code cannot be changed after creation</small>' : '<small style="color: #666; display: block; margin-top: 5px;">2-20 characters, alphanumeric, - and _ allowed</small>'}
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                    Location Name <span style="color: #dc3545;">*</span>
+                </label>
+                <input type="text" id="location_name" name="name" required 
+                       value="${escapeHtml(locationName)}"
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;"
+                       placeholder="e.g., Head Office, Branch 1, Warehouse 2">
+            </div>
+        </form>
+    `;
+    
+    openMasterModal({
+        title: isEdit ? '<i class="fas fa-edit"></i> Edit Location' : '<i class="fas fa-plus"></i> Add New Location',
+        body: modalBody,
+        size: 'medium',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-save"></i> Save Location',
+                class: 'btn-modal primary',
+                onclick: () => {
+                    document.getElementById('locationForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        ]
+    });
+}
+
+function editLocation(id, code, name) {
+    openLocationModal(id, code, name);
+}
+
+async function saveLocation(event) {
+    event.preventDefault();
+    
+    const locationId = document.getElementById('location_id').value;
+    const code = document.getElementById('location_code').value.trim();
+    const name = document.getElementById('location_name').value.trim();
+    
+    // Validate inputs
+    if (!code || !name) {
+        showToast('Location code and name are required', 'error');
+        return;
+    }
+    
+    const locationData = { code, name };
+    
+    
+    try {
+        const url = locationId ? `/api/locations/${locationId}` : '/api/locations';
+        const method = locationId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(locationData)
+        });
+        
+        const data = await response.json();
+        
+        
+        if (!response.ok) {
+            throw new Error(data.error || `Failed to save location (Status: ${response.status})`);
+        }
+        
+        showToast(data.message || 'Location saved successfully', 'success');
+        closeMasterModal();
+        loadLocationsData();
+    } catch (error) {
+        showToast(error.message || 'Failed to save location', 'error');
+    }
+}
+
+function deleteLocation(id, name) {
+    const modalBody = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 64px; color: #dc3545; margin-bottom: 20px;">
+                <i class="fas fa-map-marker-slash"></i>
+            </div>
+            <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 22px;">Are you sure?</h4>
+            <p style="color: #6c757d; font-size: 15px; line-height: 1.6;">
+                You are about to delete location <span style="font-weight: 700; color: #dc3545;">${escapeHtml(name)}</span>.
+            </p>
+            <p style="margin-top: 15px; color: #6c757d; font-size: 15px;">This action cannot be undone.</p>
+        </div>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-exclamation-triangle"></i> Confirm Delete',
+        body: modalBody,
+        size: 'small',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-trash"></i> Delete Location',
+                class: 'btn-modal danger',
+                onclick: async () => {
+                    try {
+                        const response = await fetch(`/api/locations/${id}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to delete location');
+                        }
+                        
+                        showToast(data.message || 'Location deleted successfully', 'success');
+                        closeMasterModal();
+                        loadLocationsData();
+                    } catch (error) {
+                        showToast(error.message || 'Failed to delete location', 'error');
+                    }
+                }
+            }
+        ]
+    });
+}
+
+// ========================================
+// DEPARTMENTS TAB FUNCTIONS
+// ========================================
+let allDepartments = [];
+
+loadDepartmentsTab = async function() {
+    const departmentsTab = document.getElementById('departments-tab');
+    if (!departmentsTab) {
+        return;
+    }
+    
+    loadDepartments();
+};
+
+async function loadDepartments() {
+    const tbody = document.getElementById('departmentsTableBody');
+    
+    try {
+        const response = await fetch('/api/departments');
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load departments');
+        }
+        
+        // Sort departments alphabetically by name
+        allDepartments = (data.departments || []).sort((a, b) => {
+            return (a.department_name || '').localeCompare(b.department_name || '');
+        });
+        
+        // Only display if we're on the departments tab
+        if (tbody) {
+            displayDepartments(allDepartments);
+        }
+        
+        return allDepartments;
+    } catch (error) {
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>Failed to load departments</h4>
+                        <p>${escapeHtml(error.message)}</p>
+                    </td>
+                </tr>
+            `;
+        }
+        showToast('Failed to load departments: ' + error.message, 'error');
+        return [];
+    }
+}
+
+function displayDepartments(departments) {
+    const tbody = document.getElementById('departmentsTableBody');
+    if (!tbody) return;
+    
+    if (departments.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h4>No Departments Found</h4>
+                    <p>Click "Add New Department" to create one</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = departments.map(dept => `
+        <tr>
+            <td>
+                <span style="font-weight: 600; color: #0d6efd;">${escapeHtml(dept.department_code)}</span>
+            </td>
+            <td>
+                <span style="font-weight: 500;">${escapeHtml(dept.department_name)}</span>
+            </td>
+            <td>
+                <button class="btn-action btn-edit" onclick="editDepartment(${dept.id}, '${escapeHtml(dept.department_code)}', '${escapeHtml(dept.department_name)}')">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn-action btn-delete" onclick="deleteDepartment(${dept.id}, '${escapeHtml(dept.department_name)}', ${dept.user_count || 0})">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterDepartments() {
+    const searchTerm = document.getElementById('departmentSearch').value.toLowerCase();
+    
+    const filtered = allDepartments.filter(dept => {
+        return dept.department_code.toLowerCase().includes(searchTerm) ||
+               dept.department_name.toLowerCase().includes(searchTerm);
+    });
+    
+    displayDepartments(filtered);
+}
+
+function openDepartmentModal(id = null, code = '', name = '') {
+    const isEdit = id !== null;
+    
+    const modalBody = `
+        <form id="departmentForm" onsubmit="saveDepartment(event); return false;">
+            <input type="hidden" id="department_id" value="${id || ''}">
+            
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                    <i class="fas fa-tag"></i> Department Code <span style="color: #dc3545;">*</span>
+                </label>
+                <input type="text" id="department_code" 
+                       value="${escapeHtml(code)}" 
+                       placeholder="Enter department code (e.g., IT, HR, SALES)" 
+                       maxlength="20"
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; text-transform: uppercase; ${isEdit ? 'background-color: #e9ecef; cursor: not-allowed;' : ''}"
+                       ${isEdit ? 'readonly' : ''}
+                       required>
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    ${isEdit ? 'Department code cannot be changed after creation' : '2-20 characters, alphanumeric, - and _ allowed'}
+                </small>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                    <i class="fas fa-building"></i> Department Name <span style="color: #dc3545;">*</span>
+                </label>
+                <input type="text" id="department_name" 
+                       value="${escapeHtml(name)}" 
+                       placeholder="Enter department name"
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;"
+                       required>
+            </div>
+        </form>
+    `;
+    
+    openMasterModal({
+        title: isEdit ? '<i class="fas fa-edit"></i> Edit Department' : '<i class="fas fa-plus"></i> Add New Department',
+        body: modalBody,
+        size: 'medium',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-save"></i> Save Department',
+                class: 'btn-modal primary',
+                onclick: () => {
+                    document.getElementById('departmentForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        ]
+    });
+}
+
+function editDepartment(id, code, name) {
+    openDepartmentModal(id, code, name);
+}
+
+async function saveDepartment(event) {
+    event.preventDefault();
+    
+    const departmentId = document.getElementById('department_id').value;
+    const code = document.getElementById('department_code').value.trim().toUpperCase();
+    const name = document.getElementById('department_name').value.trim();
+    
+    // Validation
+    if (!code) {
+        showToast('Department code is required', 'error');
+        return;
+    }
+    if (!name) {
+        showToast('Department name is required', 'error');
+        return;
+    }
+    
+    // Validate department code format
+    if (code.length < 2 || code.length > 20) {
+        showToast('Department code must be 2-20 characters', 'error');
+        return;
+    }
+    
+    const departmentData = { 
+        department_code: code,
+        department_name: name
+    };
+    
+    try {
+        const url = departmentId ? `/api/departments/${departmentId}` : '/api/departments';
+        const method = departmentId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(departmentData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to save department');
+        }
+        
+        showToast(data.message || 'Department saved successfully', 'success');
+        closeMasterModal();
+        loadDepartments();
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+async function deleteDepartment(id, name, userCount) {
+    if (userCount > 0) {
+        showToast(`Cannot delete department "${name}" because it has ${userCount} user(s). Please reassign users first.`, 'error', 5000);
+        return;
+    }
+    
+    const modalBody = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 64px; color: #dc3545; margin-bottom: 20px;">
+                <i class="fas fa-building"></i>
+            </div>
+            <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 22px;">Are you sure?</h4>
+            <p style="color: #6c757d; font-size: 15px; line-height: 1.6;">
+                You are about to delete department <span style="font-weight: 700; color: #dc3545;">${escapeHtml(name)}</span>.
+            </p>
+            <p style="margin-top: 15px; color: #6c757d; font-size: 15px;">This action cannot be undone.</p>
+        </div>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-exclamation-triangle"></i> Confirm Delete',
+        body: modalBody,
+        size: 'small',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-trash"></i> Delete Department',
+                class: 'btn-modal danger',
+                onclick: async () => {
+                    try {
+                        const response = await fetch(`/api/departments/${id}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to delete department');
+                        }
+                        
+                        showToast(data.message || 'Department deleted successfully', 'success');
+                        closeMasterModal();
+                        loadDepartments();
+                    } catch (error) {
+                        showToast(error.message || 'Failed to delete department', 'error');
+                    }
+                }
+            }
+        ]
+    });
+}
+
+// ========================================
+// COMPANIES TAB FUNCTIONS
+// ========================================
+let allCompanies = [];
+
+loadCompaniesTab = async function() {
+    const companiesTab = document.getElementById('companies-tab');
+    if (!companiesTab) {
+        return;
+    }
+    
+    loadCompanies();
+};
+
+async function loadCompanies() {
+    const tbody = document.getElementById('companiesTableBody');
+    
+    if (!tbody) {
+        return [];
+    }
+    
+    try {
+        const response = await fetch('/api/companies');
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load companies');
+        }
+        
+        // Sort companies alphabetically by name
+        allCompanies = (data.companies || []).sort((a, b) => {
+            return (a.company_name || '').localeCompare(b.company_name || '');
+        });
+        
+        // Only display if we're on the companies tab
+        if (tbody) {
+            displayCompanies(allCompanies);
+        }
+        
+        return allCompanies;
+    } catch (error) {
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>Failed to load companies</h4>
+                        <p>${escapeHtml(error.message)}</p>
+                    </td>
+                </tr>
+            `;
+        }
+        return [];
+    }
+}
+
+function displayCompanies(companies) {
+    const tbody = document.getElementById('companiesTableBody');
+    if (!tbody) return;
+    
+    if (companies.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h4>No Companies Found</h4>
+                    <p>Click "Add New Company" to create your first company</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = companies.map(company => `
+        <tr>
+            <td>
+                <span style="font-weight: 600; color: #0d6efd;">${escapeHtml(company.company_code)}</span>
+            </td>
+            <td>
+                <span style="font-weight: 500;">${escapeHtml(company.company_name)}</span>
+            </td>
+            <td>
+                <button class="btn-action btn-edit" onclick='editCompany(${JSON.stringify(company)})' title="Edit">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn-action btn-delete" onclick="deleteCompany(${company.id}, '${escapeHtml(company.company_code)}', '${escapeHtml(company.company_name)}')" title="Delete">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterCompanies() {
+    const searchTerm = document.getElementById('companySearch').value.toLowerCase();
+    
+    const filtered = allCompanies.filter(company => {
+        return company.company_code.toLowerCase().includes(searchTerm) ||
+               company.company_name.toLowerCase().includes(searchTerm);
+    });
+    
+    displayCompanies(filtered);
+}
+
+function openCompanyModal(company = null) {
+    const isEdit = company !== null;
+    
+    const modalBody = `
+        <form id="companyForm" onsubmit="saveCompany(event); return false;">
+            <input type="hidden" id="company_id" value="${company?.id || ''}">
+            
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                    <i class="fas fa-tag"></i> Company Code <span style="color: #dc3545;">*</span>
+                </label>
+                <input type="text" id="company_code" 
+                       value="${escapeHtml(company?.company_code || '')}" 
+                       placeholder="e.g., MTPL" 
+                       maxlength="20"
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; text-transform: uppercase; ${isEdit ? 'background-color: #e9ecef; cursor: not-allowed;' : ''}"
+                       ${isEdit ? 'readonly' : ''}
+                       required>
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    ${isEdit ? 'Company code cannot be changed after creation' : '2-20 characters, alphanumeric, - and _ allowed'}
+                </small>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                    <i class="fas fa-industry"></i> Company Name <span style="color: #dc3545;">*</span>
+                </label>
+                <input type="text" id="company_name" 
+                       value="${escapeHtml(company?.company_name || '')}" 
+                       placeholder="Enter company name"
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;"
+                       required>
+            </div>
+        </form>
+    `;
+    
+    openMasterModal({
+        title: isEdit ? '<i class="fas fa-edit"></i> Edit Company' : '<i class="fas fa-plus"></i> Add New Company',
+        body: modalBody,
+        size: 'medium',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-save"></i> Save Company',
+                class: 'btn-modal primary',
+                onclick: () => {
+                    document.getElementById('companyForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        ]
+    });
+}
+
+function editCompany(company) {
+    openCompanyModal(company);
+}
+
+async function saveCompany(event) {
+    event.preventDefault();
+    
+    const companyId = document.getElementById('company_id').value;
+    const code = document.getElementById('company_code').value.trim().toUpperCase();
+    const name = document.getElementById('company_name').value.trim();
+    
+    if (!code || !name) {
+        showToast('Company code and name are required', 'error');
+        return;
+    }
+    
+    const companyData = { 
+        company_code: code,
+        company_name: name
+    };
+    
+    try {
+        const url = companyId ? `/api/companies/${companyId}` : '/api/companies';
+        const method = companyId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(companyData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to save company');
+        }
+        
+        showToast(data.message || 'Company saved successfully', 'success');
+        closeMasterModal();
+        loadCompanies();
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
+}
+
+async function deleteCompany(id, code, name) {
+    const modalBody = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 64px; color: #dc3545; margin-bottom: 20px;">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 22px;">Are you sure?</h4>
+            <p style="color: #6c757d; font-size: 15px; line-height: 1.6;">
+                You are about to delete company <span style="font-weight: 700; color: #dc3545;">${escapeHtml(code)} - ${escapeHtml(name)}</span>.
+            </p>
+            <p style="margin-top: 15px; color: #6c757d; font-size: 15px;">This action cannot be undone.</p>
+        </div>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-exclamation-triangle"></i> Confirm Delete',
+        body: modalBody,
+        size: 'small',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-trash"></i> Delete Company',
+                class: 'btn-modal danger',
+                onclick: async () => {
+                    try {
+                        const response = await fetch(`/api/companies/${id}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to delete company');
+                        }
+                        
+                        showToast(data.message || 'Company deleted successfully', 'success');
+                        closeMasterModal();
+                        loadCompanies();
+                    } catch (error) {
+                        showToast(error.message || 'Failed to delete company', 'error');
+                    }
+                }
+            }
+        ]
+    });
+}
+
+// ========================================
+// EVENT DELEGATION FOR DYNAMICALLY CREATED BUTTONS
+// ========================================
+
+// Use event delegation to handle all button clicks
+document.addEventListener('click', function(e) {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+    
+    const action = target.getAttribute('data-action');
+    
+    // User actions
+    if (action === 'edit-user') {
+        const userId = parseInt(target.getAttribute('data-user-id'));
+        editUser(userId);
+    } else if (action === 'delete-user') {
+        const userId = parseInt(target.getAttribute('data-user-id'));
+        const username = target.getAttribute('data-username');
+        deleteUser(userId, username);
+    }
+    // Department actions
+    else if (action === 'edit-department') {
+        const id = parseInt(target.getAttribute('data-id'));
+        const code = target.getAttribute('data-code');
+        const name = target.getAttribute('data-name');
+        editDepartment(id, code, name);
+    } else if (action === 'delete-department') {
+        const id = parseInt(target.getAttribute('data-id'));
+        const name = target.getAttribute('data-name');
+        const userCount = parseInt(target.getAttribute('data-user-count') || '0');
+        deleteDepartment(id, name, userCount);
+    }
+    // Company actions
+    else if (action === 'edit-company') {
+        const companyData = target.getAttribute('data-company');
+        const company = JSON.parse(companyData);
+        editCompany(company);
+    } else if (action === 'delete-company') {
+        const id = parseInt(target.getAttribute('data-id'));
+        const code = target.getAttribute('data-code');
+        const name = target.getAttribute('data-name');
+        deleteCompany(id, code, name);
+    }
+    // Location actions
+    else if (action === 'edit-location') {
+        const id = parseInt(target.getAttribute('data-id'));
+        const code = target.getAttribute('data-code');
+        const name = target.getAttribute('data-name');
+        editLocation(id, code, name);
+    } else if (action === 'delete-location') {
+        const id = parseInt(target.getAttribute('data-id'));
+        const name = target.getAttribute('data-name');
+        deleteLocation(id, name);
+    }
+    // Designation actions
+    else if (action === 'edit-designation') {
+        const id = parseInt(target.getAttribute('data-id'));
+        const code = target.getAttribute('data-code');
+        const name = target.getAttribute('data-name');
+        editDesignation(id, code, name);
+    } else if (action === 'delete-designation') {
+        const id = parseInt(target.getAttribute('data-id'));
+        const name = target.getAttribute('data-name');
+        deleteDesignation(id, name);
+    }
+});
+
+// ========================================
+// PAGE INITIALIZATION
+// ========================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we should show a specific tab based on URL hash
+    const hash = window.location.hash.substring(1);
+    
+    if (hash && ['companies', 'departments', 'designations', 'locations', 'templates', 'users'].includes(hash)) {
+        const tabButton = document.querySelector(`.settings-tab[onclick*="${hash}"]`);
+        if (tabButton) {
+            tabButton.click();
+        } else {
+            loadCompaniesTab();
+        }
+    } else {
+        loadCompaniesTab();
+    }
+});
+
+// Master Modal Functions
+function openMasterModal(titleOrOptions, bodyHTML, buttons = []) {
+    // Support both object format and individual parameters
+    let title, body, modalButtons;
+    
+    if (typeof titleOrOptions === 'object' && titleOrOptions !== null) {
+        // Object format: {title, body, buttons, size}
+        title = titleOrOptions.title;
+        body = titleOrOptions.body;
+        modalButtons = titleOrOptions.buttons || [];
+    } else {
+        // Individual parameters format
+        title = titleOrOptions;
+        body = bodyHTML;
+        modalButtons = buttons;
+    }
+    
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('masterModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'masterModal';
+        modal.className = 'master-modal';
+        modal.innerHTML = `
+            <div class="master-modal-content">
+                <div class="master-modal-header">
+                    <h3 class="master-modal-title"></h3>
+                    <button type="button" class="master-modal-close" onclick="closeMasterModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="master-modal-body"></div>
+                <div class="master-modal-footer"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Update modal content - use innerHTML for title to support icons
+    modal.querySelector('.master-modal-title').innerHTML = title;
+    modal.querySelector('.master-modal-body').innerHTML = body;
+    
+    // Update buttons - FIXED: Use addEventListener instead of onclick attribute
+    const footer = modal.querySelector('.master-modal-footer');
+    footer.innerHTML = ''; // Clear existing buttons
+    
+    modalButtons.forEach((btn, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = btn.class || 'btn-modal btn-modal-primary';
+        button.innerHTML = btn.text || 'Button';
+        
+        // Attach event handler properly
+        if (btn.onclick && typeof btn.onclick === 'function') {
+            button.addEventListener('click', btn.onclick);
+        } else if (btn.onclick && typeof btn.onclick === 'string') {
+            button.setAttribute('onclick', btn.onclick);
+        }
+        
+        footer.appendChild(button);
+    });
+    
+    // Ensure modal is appended to body (not inside settings container)
+    if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+    
+    // Remove any inline styles that might interfere
+    modal.removeAttribute('style');
+    
+    // Add the modal-open class to show the modal
+    modal.classList.add('modal-open');
+    
+    // Ensure modal content is also clickable
+    const modalContent = modal.querySelector('.master-modal-content');
+    if (modalContent) {
+        modalContent.style.pointerEvents = 'auto';
+    }
+    
+    // Close on background click
+    modal.onclick = function(event) {
+        if (event.target === modal) {
+            closeMasterModal();
+        }
+    };
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-active');
+}
+
+function closeMasterModal() {
+    const modal = document.getElementById('masterModal');
+    if (modal) {
+        // Remove the modal-open class to hide the modal
+        modal.classList.remove('modal-open');
+    }
+    // Restore body scroll
+    document.body.style.overflow = '';
+    document.body.classList.remove('modal-active');
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    // Create toast container if it doesn't exist
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000500;';
+        document.body.appendChild(container);
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    const iconMap = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'warning': 'fa-exclamation-triangle',
+        'info': 'fa-info-circle'
+    };
+    const colorMap = {
+        'success': '#10b981',
+        'error': '#ef4444',
+        'warning': '#f59e0b',
+        'info': '#3b82f6'
+    };
+    
+    toast.style.cssText = `
+        background: white;
+        border-left: 4px solid ${colorMap[type] || colorMap.info};
+        padding: 16px 20px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 500px;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    toast.innerHTML = `
+        <i class="fas ${iconMap[type] || iconMap.info}" style="color: ${colorMap[type] || colorMap.info}; font-size: 20px;"></i>
+        <span style="flex: 1; color: #333; font-size: 14px;">${message}</span>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #999; cursor: pointer; font-size: 18px;">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+
+// ========================================
+// DESIGNATIONS TAB FUNCTIONS
+// ========================================
+
+loadDesignationsTab = function() {
+    loadDesignationsData();
+};
+
+async function loadDesignationsData() {
+    try {
+        const response = await fetch('/api/hardcoded/designations');
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load designations');
+        }
+        
+        // Sort designations alphabetically by name
+        const sortedDesignations = (data.designations || []).sort((a, b) => {
+            return (a.name || '').localeCompare(b.name || '');
+        });
+        
+        displayDesignations(sortedDesignations);
+    } catch (error) {
+        showToast('Failed to load designations: ' + error.message, 'error');
+    }
+}
+
+function displayDesignations(designations) {
+    const tbody = document.getElementById('designationsTableBody');
+    
+    if (!tbody) {
+        return;
+    }
+    
+    if (designations.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                    <i class="fas fa-id-badge" style="font-size: 64px; opacity: 0.3; margin-bottom: 20px; display: block;"></i>
+                    <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">No designations found</h4>
+                    <p style="font-size: 14px;">Click "Add New Designation" to create one</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = designations.map(designation => {
+        return `
+            <tr>
+                <td>
+                    <span style="font-weight: 600; color: #0d6efd;">${escapeHtml(designation.code)}</span>
+                </td>
+                <td>
+                    <span style="font-weight: 500;">${escapeHtml(designation.name)}</span>
+                </td>
+                <td>
+                    <button class="btn-action btn-edit" onclick="editDesignation(${designation.id}, '${escapeHtml(designation.code)}', '${escapeHtml(designation.name)}')">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn-action btn-delete" onclick="deleteDesignation(${designation.id}, '${escapeHtml(designation.name)}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Store all designations for filtering
+    window.allDesignations = designations;
+}
+
+function filterDesignations() {
+    const searchTerm = document.getElementById('designationSearch').value.toLowerCase();
+    
+    if (!window.allDesignations || !Array.isArray(window.allDesignations)) {
+        return;
+    }
+    
+    const filtered = window.allDesignations.filter(designation => 
+        designation.code.toLowerCase().includes(searchTerm) ||
+        designation.name.toLowerCase().includes(searchTerm)
+    );
+    displayDesignations(filtered);
+}
+
+function openDesignationModal(designationId = null, designationCode = '', designationName = '') {
+    const isEdit = designationId !== null;
+    
+    const modalBody = `
+        <form id="designationForm" onsubmit="saveDesignation(event); return false;">
+            <input type="hidden" id="designation_id" value="${designationId || ''}">
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                    Designation Code <span style="color: #dc3545;">*</span>
+                </label>
+                <input type="text" id="designation_code" name="code" required 
+                       value="${escapeHtml(designationCode)}"
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; text-transform: uppercase; ${isEdit ? 'background-color: #e9ecef; cursor: not-allowed;' : ''}"
+                       placeholder="e.g., MGR, ENG, TEC"
+                       ${isEdit ? 'readonly' : ''}
+                       oninput="this.value = this.value.toUpperCase()">
+                ${isEdit ? '<small style="color: #666; display: block; margin-top: 5px;">Designation code cannot be changed after creation</small>' : '<small style="color: #666; display: block; margin-top: 5px;">2-20 characters, alphanumeric, - and _ allowed</small>'}
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                    Designation Name <span style="color: #dc3545;">*</span>
+                </label>
+                <input type="text" id="designation_name" name="name" required 
+                       value="${escapeHtml(designationName)}"
+                       style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;"
+                       placeholder="e.g., Manager, Engineer, Technician">
+            </div>
+        </form>
+    `;
+    
+    openMasterModal({
+        title: isEdit ? '<i class="fas fa-edit"></i> Edit Designation' : '<i class="fas fa-plus"></i> Add New Designation',
+        body: modalBody,
+        size: 'medium',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-save"></i> Save Designation',
+                class: 'btn-modal primary',
+                onclick: () => {
+                    document.getElementById('designationForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        ]
+    });
+}
+
+function editDesignation(id, code, name) {
+    openDesignationModal(id, code, name);
+}
+
+async function saveDesignation(event) {
+    event.preventDefault();
+    
+    const designationId = document.getElementById('designation_id').value;
+    const code = document.getElementById('designation_code').value.trim();
+    const name = document.getElementById('designation_name').value.trim();
+    
+    // Validate inputs
+    if (!code || !name) {
+        showToast('Designation code and name are required', 'error');
+        return;
+    }
+    
+    try {
+        const url = designationId ? `/api/designations/${designationId}` : '/api/designations';
+        const method = designationId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, name })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to save designation');
+        }
+        
+        showToast(data.message || 'Designation saved successfully', 'success');
+        closeMasterModal();
+        loadDesignationsData();
+    } catch (error) {
+        showToast(error.message || 'Failed to save designation', 'error');
+    }
+}
+
+function deleteDesignation(designationId, designationName) {
+    const modalBody = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 64px; color: #dc3545; margin-bottom: 20px;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h4 style="color: #2c3e50; margin-bottom: 15px; font-size: 22px;">Are you sure?</h4>
+            <p style="color: #6c757d; font-size: 15px; line-height: 1.6;">
+                You are about to delete designation <span style="font-weight: 700; color: #dc3545;">${escapeHtml(designationName)}</span>.
+            </p>
+            <p style="margin-top: 15px; color: #6c757d; font-size: 15px;">This action cannot be undone.</p>
+        </div>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-exclamation-triangle"></i> Confirm Delete',
+        body: modalBody,
+        size: 'small',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-trash"></i> Delete Designation',
+                class: 'btn-modal danger',
+                onclick: async () => {
+                    try {
+                        const response = await fetch(`/api/designations/${designationId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to delete designation');
+                        }
+                        
+                        showToast(data.message || 'Designation deleted successfully', 'success');
+                        closeMasterModal();
+                        loadDesignationsData();
+                    } catch (error) {
+                        showToast(error.message || 'Failed to delete designation', 'error');
+                    }
+                }
+            }
+        ]
+    });
+}
+
+// ========================================
+// TEMPLATES TAB FUNCTIONS
+// ========================================
+
+let templateData = [];
+let departmentsData = [];
+let designationsData = [];
+let usersData = [];
+
+async function loadTemplatesTab() {
+    try {
+        // Load template structure, departments, designations, and users in parallel
+        const [templateResponse, departmentsResponse, designationsResponse, usersResponse] = await Promise.all([
+            fetch('/api/template-structure'),
+            fetch('/api/departments'),
+            fetch('/api/hardcoded/designations'),
+            fetch('/api/users')
+        ]);
+        
+        const templateResult = await templateResponse.json();
+        const departmentsResult = await departmentsResponse.json();
+        const designationsResult = await designationsResponse.json();
+        const usersResult = await usersResponse.json();
+        
+        if (!templateResponse.ok) {
+            throw new Error(templateResult.error || 'Failed to load template structure');
+        }
+        
+        templateData = templateResult.structure || [];
+        departmentsData = (departmentsResult.departments || []).filter(d => d.is_active);
+        designationsData = (designationsResult.designations || []);
+        usersData = (usersResult.users || []).filter(u => u.is_active);
+        
+        renderTemplateStructure();
+    } catch (error) {
+        showToast('Failed to load templates: ' + error.message, 'error');
+    }
+}
+
+function renderTemplateStructure() {
+    const container = document.getElementById('templatesPhasesContainer');
+    
+    if (templateData.length === 0) {
+        container.innerHTML = `
+            <div class="templates-empty-state">
+                <i class="fas fa-layer-group"></i>
+                <h4>No Phases Defined</h4>
+                <p>Click "Add Phase" to create your first phase template</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Build department options HTML once
+    const departmentOptionsHtml = `
+        <option value="">-- Not Set --</option>
+        ${departmentsData.map(dept => 
+            `<option value="${dept.department_code}" data-full-name="${dept.department_code} - ${dept.department_name}">${dept.department_code} - ${dept.department_name}</option>`
+        ).join('')}
+    `;
+    
+    // Build designation options HTML once
+    const designationOptionsHtml = `
+        <option value="">-- Not Set --</option>
+        ${designationsData.map(desig => 
+            `<option value="${desig.code}" data-full-name="${desig.code} - ${desig.name}">${desig.code} - ${desig.name}</option>`
+        ).join('')}
+    `;
+    
+    // Build users options HTML once
+    const userOptionsHtml = `
+        <option value="">-- Not Set --</option>
+        ${usersData.map(user => 
+            `<option value="${user.id}">${user.full_name}</option>`
+        ).join('')}
+    `;
+    
+    container.innerHTML = templateData.map((phase, phaseIdx) => `
+        <div class="phase-template-block" data-phase-idx="${phaseIdx}">
+            <div class="phase-template-header">
+                <span class="phase-template-number">${phaseIdx + 1}</span>
+                <input type="text" value="${escapeHtml(phase.name)}" 
+                       onchange="updatePhaseName(${phaseIdx}, this.value)"
+                       class="phase-template-name">
+                <div class="phase-template-actions">
+                    <button onclick="addStageToPhase(${phaseIdx})" class="btn-add-stage">
+                        <i class="fas fa-plus"></i> Add Stage
+                    </button>
+                    <button onclick="deletePhase(${phaseIdx})" class="btn-delete-phase">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="phase-stages-container">
+                ${phase.stages.length > 0 ? `
+                    <div class="stages-table-header">
+                        <div class="stage-col-number">S.No</div>
+                        <div class="stage-col-name">Stage Name</div>
+                        <div class="stage-col-dept">Department</div>
+                        <div class="stage-col-user">Designation</div>
+                        <div class="stage-col-responsible">Responsible Person</div>
+                        <div class="stage-col-duration">Duration (Days)</div>
+                        <div class="stage-col-actions">Actions</div>
+                    </div>
+                ` : ''}
+                ${phase.stages.map((stage, stageIdx) => {
+                    // Build department dropdown with selected value
+                    const deptSelectHtml = departmentOptionsHtml.replace(
+                        `value="${stage.department}"`,
+                        `value="${stage.department}" selected`
+                    );
+                    
+                    // Build designation dropdown with selected value
+                    const desigSelectHtml = designationOptionsHtml.replace(
+                        `value="${stage.designation}"`,
+                        `value="${stage.designation}" selected`
+                    );
+                    
+                    // Build responsible person dropdown with selected value
+                    const userSelectHtml = stage.responsible_user_id 
+                        ? userOptionsHtml.replace(
+                            `value="${stage.responsible_user_id}"`,
+                            `value="${stage.responsible_user_id}" selected`
+                        )
+                        : userOptionsHtml;
+                    
+                    return `
+                        <div class="stage-template-item" data-stage-idx="${stageIdx}">
+                            <div class="stage-col-number">
+                                <span class="stage-number">${stageIdx + 1}</span>
+                            </div>
+                            <div class="stage-col-name">
+                                <textarea value="${escapeHtml(stage.name)}" 
+                                       onchange="updateStageName(${phaseIdx}, ${stageIdx}, this.value)"
+                                       oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"
+                                       class="stage-name-input"
+                                       placeholder="Stage name"
+                                       rows="2">${escapeHtml(stage.name)}</textarea>
+                            </div>
+                            <div class="stage-col-dept">
+                                <select onchange="updateStageDepartment(${phaseIdx}, ${stageIdx}, this.value)"
+                                        class="stage-select-input stage-dept-select" data-stage-idx="${phaseIdx}-${stageIdx}">
+                                    ${deptSelectHtml}
+                                </select>
+                            </div>
+                            <div class="stage-col-user">
+                                <select onchange="updateStageDesignation(${phaseIdx}, ${stageIdx}, this.value)"
+                                        class="stage-select-input stage-desig-select" data-stage-idx="${phaseIdx}-${stageIdx}">
+                                    ${desigSelectHtml}
+                                </select>
+                            </div>
+                            <div class="stage-col-responsible">
+                                <select onchange="updateStageResponsible(${phaseIdx}, ${stageIdx}, this.value)"
+                                        class="stage-select-input stage-responsible-select">
+                                    ${userSelectHtml}
+                                </select>
+                            </div>
+                            <div class="stage-col-duration">
+                                <input type="number" value="${stage.duration || ''}" 
+                                       onchange="updateStageDuration(${phaseIdx}, ${stageIdx}, this.value)"
+                                       class="stage-duration-input"
+                                       placeholder="Days"
+                                       min="1">
+                            </div>
+                            <div class="stage-col-actions">
+                                <button onclick="deleteStage(${phaseIdx}, ${stageIdx})" class="btn-delete-stage" title="Delete Stage">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `).join('');
+    
+    // Add event listeners to all dropdowns after rendering
+    setTimeout(() => {
+        // Handle department dropdowns
+        document.querySelectorAll('.stage-dept-select').forEach(select => {
+            // Store full text initially
+            const selectedOpt = select.options[select.selectedIndex];
+            if (selectedOpt.value && selectedOpt.value !== '') {
+                selectedOpt.setAttribute('data-full-text', selectedOpt.textContent);
+                // Show only code when not focused
+                selectedOpt.textContent = selectedOpt.value;
+            }
+            
+            // Show full text when opening dropdown
+            select.addEventListener('focus', function() {
+                Array.from(this.options).forEach(opt => {
+                    const fullText = opt.getAttribute('data-full-name');
+                    if (fullText) {
+                        opt.textContent = fullText;
+                    }
+                });
+            });
+            
+            // Show only code after selection
+            select.addEventListener('blur', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value && selectedOption.value !== '') {
+                    selectedOption.textContent = selectedOption.value;
+                }
+            });
+        });
+        
+        // Handle designation dropdowns
+        document.querySelectorAll('.stage-desig-select').forEach(select => {
+            // Store full text initially
+            const selectedOpt = select.options[select.selectedIndex];
+            if (selectedOpt.value && selectedOpt.value !== '') {
+                selectedOpt.setAttribute('data-full-text', selectedOpt.textContent);
+                // Show only code when not focused
+                selectedOpt.textContent = selectedOpt.value;
+            }
+            
+            // Show full text when opening dropdown
+            select.addEventListener('focus', function() {
+                Array.from(this.options).forEach(opt => {
+                    const fullText = opt.getAttribute('data-full-name');
+                    if (fullText) {
+                        opt.textContent = fullText;
+                    }
+                });
+            });
+            
+            // Show only code after selection
+            select.addEventListener('blur', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value && selectedOption.value !== '') {
+                    selectedOption.textContent = selectedOption.value;
+                }
+            });
+        });
+    }, 100);
+}
+
+function updatePhaseName(phaseIdx, newName) {
+    if (!newName.trim()) {
+        showToast('Phase name cannot be empty', 'error');
+        renderTemplateStructure();
+        return;
+    }
+    templateData[phaseIdx].name = newName.trim();
+    // Changes will be saved when user clicks Save Template button
+}
+
+function updateStageName(phaseIdx, stageIdx, newName) {
+    if (!newName.trim()) {
+        showToast('Stage name cannot be empty', 'error');
+        renderTemplateStructure();
+        return;
+    }
+    templateData[phaseIdx].stages[stageIdx].name = newName.trim();
+    // Changes will be saved when user clicks Save Template button
+}
+
+function updateStageDepartment(phaseIdx, stageIdx, dept) {
+    templateData[phaseIdx].stages[stageIdx].department = dept || null;
+    // Changes will be saved when user clicks Save Template button
+    
+    // Update display to show only code
+    const select = document.querySelector(`.stage-dept-select[data-stage-idx="${phaseIdx}-${stageIdx}"]`);
+    if (select && dept) {
+        const selectedOption = select.options[select.selectedIndex];
+        // Store the full name for later reference
+        selectedOption.textContent = dept;
+    }
+}
+
+function updateStageDesignation(phaseIdx, stageIdx, desig) {
+    templateData[phaseIdx].stages[stageIdx].designation = desig || null;
+    // Changes will be saved when user clicks Save Template button
+    
+    // Update display to show only code
+    const select = document.querySelector(`.stage-desig-select[data-stage-idx="${phaseIdx}-${stageIdx}"]`);
+    if (select && desig) {
+        const selectedOption = select.options[select.selectedIndex];
+        // Store the full name for later reference
+        selectedOption.textContent = desig;
+    }
+}
+
+function updateStageResponsible(phaseIdx, stageIdx, userId) {
+    if (userId) {
+        const user = usersData.find(u => u.id == userId);
+        templateData[phaseIdx].stages[stageIdx].responsible_user_id = parseInt(userId);
+        templateData[phaseIdx].stages[stageIdx].responsible_user_name = user ? user.full_name : null;
+    } else {
+        templateData[phaseIdx].stages[stageIdx].responsible_user_id = null;
+        templateData[phaseIdx].stages[stageIdx].responsible_user_name = null;
+    }
+    // Changes will be saved when user clicks Save Template button
+}
+
+function updateStageDuration(phaseIdx, stageIdx, duration) {
+    templateData[phaseIdx].stages[stageIdx].duration = duration ? parseInt(duration) : null;
+    // Changes will be saved when user clicks Save Template button
+}
+
+function addNewPhase() {
+    const modalBody = `
+        <form id="addPhaseForm" onsubmit="saveNewPhase(event); return false;">
+            <div class="form-group">
+                <label class="form-label">
+                    Phase Name <span class="text-danger">*</span>
+                </label>
+                <input type="text" id="new_phase_name" class="form-control" required 
+                       placeholder="Enter phase name">
+            </div>
+        </form>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-plus"></i> Add New Phase',
+        body: modalBody,
+        size: 'medium',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-save"></i> Add Phase',
+                class: 'btn-modal primary',
+                onclick: () => {
+                    document.getElementById('addPhaseForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        ]
+    });
+}
+
+function saveNewPhase(event) {
+    event.preventDefault();
+    
+    const phaseName = document.getElementById('new_phase_name').value.trim();
+    
+    if (!phaseName) {
+        showToast('Phase name is required', 'error');
+        return;
+    }
+    
+    templateData.push({
+        name: phaseName,
+        stages: []
+    });
+    
+    renderTemplateStructure();
+    closeMasterModal();
+    showToast('Phase added. Click "Save Template" to save changes.', 'info');
+}
+
+function addStageToPhase(phaseIdx) {
+    const modalBody = `
+        <form id="addStageForm" onsubmit="saveNewStage(event, ${phaseIdx}); return false;">
+            <div class="form-group">
+                <label class="form-label">
+                    Stage Name <span class="text-danger">*</span>
+                </label>
+                <input type="text" id="new_stage_name" class="form-control" required 
+                       placeholder="Enter stage name">
+            </div>
+        </form>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-plus"></i> Add New Stage',
+        body: modalBody,
+        size: 'medium',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-save"></i> Add Stage',
+                class: 'btn-modal primary',
+                onclick: () => {
+                    document.getElementById('addStageForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        ]
+    });
+}
+
+function saveNewStage(event, phaseIdx) {
+    event.preventDefault();
+    
+    const stageName = document.getElementById('new_stage_name').value.trim();
+    
+    if (!stageName) {
+        showToast('Stage name is required', 'error');
+        return;
+    }
+    
+    templateData[phaseIdx].stages.push({
+        name: stageName,
+        department: null,
+        designation: null,
+        duration: null
+    });
+    
+    renderTemplateStructure();
+    closeMasterModal();
+    showToast('Stage added. Click "Save Template" to save changes.', 'info');
+}
+
+function deletePhase(phaseIdx) {
+    const phase = templateData[phaseIdx];
+    
+    const modalBody = `
+        <div class="delete-confirmation">
+            <div class="icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h4>Delete Phase?</h4>
+            <p>
+                Are you sure you want to delete <span class="highlight">${escapeHtml(phase.name)}</span>?
+            </p>
+            <p>This will also delete all ${phase.stages.length} stages in this phase.</p>
+            <p class="warning">This action cannot be undone.</p>
+        </div>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-exclamation-triangle"></i> Confirm Delete',
+        body: modalBody,
+        size: 'small',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-trash"></i> Delete Phase',
+                class: 'btn-modal danger',
+                onclick: () => {
+                    templateData.splice(phaseIdx, 1);
+                    renderTemplateStructure();
+                    closeMasterModal();
+                    showToast('Phase deleted. Click "Save Template" to save changes.', 'info');
+                }
+            }
+        ]
+    });
+}
+
+function deleteStage(phaseIdx, stageIdx) {
+    const stage = templateData[phaseIdx].stages[stageIdx];
+    
+    const modalBody = `
+        <div class="delete-confirmation">
+            <div class="icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h4>Delete Stage?</h4>
+            <p>
+                Are you sure you want to delete <span class="highlight">${escapeHtml(stage.name)}</span>?
+            </p>
+            <p class="warning">This action cannot be undone.</p>
+        </div>
+    `;
+    
+    openMasterModal({
+        title: '<i class="fas fa-exclamation-triangle"></i> Confirm Delete',
+        body: modalBody,
+        size: 'small',
+        buttons: [
+            {
+                text: '<i class="fas fa-times"></i> Cancel',
+                class: 'btn-modal secondary',
+                onclick: closeMasterModal
+            },
+            {
+                text: '<i class="fas fa-trash"></i> Delete Stage',
+                class: 'btn-modal danger',
+                onclick: () => {
+                    templateData[phaseIdx].stages.splice(stageIdx, 1);
+                    renderTemplateStructure();
+                    closeMasterModal();
+                    showToast('Stage deleted. Click "Save Template" to save changes.', 'info');
+                }
+            }
+        ]
+    });
+}
+
+// Manual save function triggered by Save Template button
+async function saveTemplateStructureManually() {
+    try {
+        // Refresh JWT token before saving
+        let jwtToken = window.JWT_TOKEN;
+        
+        if (!jwtToken || jwtToken === 'null' || jwtToken === null) {
+            showToast('Authentication error: Refreshing session...', 'warning');
+            await refreshJWTToken();
+            jwtToken = window.JWT_TOKEN;
+        }
+        
+        console.log('Saving template structure with', templateData.length, 'phases');
+        
+        const headers = { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`
+        };
+        
+        let response = await fetch('/api/template-structure', {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify({ structure: templateData }),
+            credentials: 'include'
+        });
+        
+        // If token expired, refresh and retry once
+        if (response.status === 401) {
+            console.log('Token expired, refreshing and retrying...');
+            showToast('Session expired, refreshing...', 'info');
+            
+            await refreshJWTToken();
+            jwtToken = window.JWT_TOKEN;
+            
+            // Retry with new token
+            response = await fetch('/api/template-structure', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwtToken}`
+                },
+                body: JSON.stringify({ structure: templateData }),
+                credentials: 'include'
+            });
+        }
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            console.error('Save failed:', response.status, data);
+            if (response.status === 401) {
+                showToast('Authentication failed. Please refresh the page and try again.', 'error');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else if (response.status === 403) {
+                showToast('You do not have permission to save templates. Admin access required.', 'error');
+            } else {
+                throw new Error(data.error || 'Failed to save template structure');
+            }
+            return;
+        }
+        
+        console.log('Template saved successfully:', data);
+        
+        // Show success toast
+        showToast('✅ Template structure saved successfully!', 'success');
+        
+        // Show success modal
+        const successModal = `
+            <div class="delete-confirmation" style="text-align: center;">
+                <div class="icon" style="color: #10b981;">
+                    <i class="fas fa-check-circle" style="font-size: 4rem;"></i>
+                </div>
+                <h4 style="color: #059669; margin-top: 1rem;">Template Saved Successfully!</h4>
+                <p style="color: #6b7280; margin-top: 0.5rem;">
+                    Your template structure has been saved to the database.
+                </p>
+                <p style="color: #6b7280; font-size: 0.9rem;">
+                    All new projects will now use this updated template structure.
+                </p>
+            </div>
+        `;
+        
+        openMasterModal({
+            title: '<i class="fas fa-check-circle" style="color: #10b981;"></i> Success',
+            body: successModal,
+            size: 'small',
+            buttons: [
+                {
+                    text: '<i class="fas fa-check"></i> OK',
+                    class: 'btn-modal btn-modal-primary',
+                    onclick: closeMasterModal
+                }
+            ]
+        });
+    } catch (error) {
+        showToast('Failed to save: ' + error.message, 'error');
+    }
+}
+</script>
+{% endblock %}

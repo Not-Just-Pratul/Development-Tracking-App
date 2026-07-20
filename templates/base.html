@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, shrink-to-fit=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="format-detection" content="telephone=no">
+    <title>{% block title %}Development Tracking System{% endblock %}</title>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Unified CSS - Single consolidated stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/unified.css') }}?v=readable3">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png" />
+    
+    <!-- Initialize JWT Token for API authentication -->
+    <script>
+        window.JWT_TOKEN = {{ session.jwt_token|tojson if session.jwt_token else 'null' }};
+    </script>
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        * {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+        }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 991px) {
+            /* Ensure navbar collapses properly */
+            .navbar-collapse {
+                background: white;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin-top: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            
+            /* Better touch targets */
+            .nav-link {
+                padding: 0.75rem 1rem !important;
+                margin: 0.25rem 0;
+            }
+            
+            /* Hide desktop user dropdown on mobile */
+            .company-header .dropdown {
+                display: none;
+            }
+        }
+        
+        /* Smooth transitions */
+        .navbar-collapse {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Prevent layout shift */
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        /* Fix header overflow to allow dropdown to show */
+        .company-header {
+            overflow: visible !important;
+            position: relative !important;
+            z-index: 1050 !important;
+        }
+        
+        .company-header .container-fluid {
+            overflow: visible !important;
+        }
+        
+        header.sticky-top {
+            overflow: visible !important;
+            z-index: 1040 !important;
+        }
+        
+        /* Navbar should be below dropdown */
+        nav.navbar {
+            position: relative !important;
+            z-index: 1030 !important;
+        }
+        
+        /* Logout Button Styling */
+        .logout-btn {
+            background-color: #dc3545 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border-radius: 6px !important;
+            transition: all 0.3s ease !important;
+            margin: 4px !important;
+            display: block !important;
+            padding: 0.5rem 1rem !important;
+            font-size: 0.875rem !important;
+            text-align: left !important;
+        }
+        
+        .logout-btn:hover {
+            background-color: #dc3545 !important;
+            color: white !important;
+            transform: translateX(0) !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4) !important;
+        }
+        
+        .logout-btn:focus,
+        .logout-btn:active {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        
+        .logout-btn i {
+            font-size: 0.875rem !important;
+            color: white !important;
+        }
+        
+        /* Ensure dropdown menu is visible */
+        .company-header .dropdown {
+            position: relative !important;
+            z-index: 1060 !important;
+        }
+        
+        .company-header .dropdown-menu {
+            position: absolute !important;
+            top: 100% !important;
+            right: 0 !important;
+            left: auto !important;
+            z-index: 1070 !important;
+            background: white !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
+            min-width: 160px !important;
+            max-width: 200px !important;
+            margin-top: 0.5rem !important;
+            border-radius: 0.5rem !important;
+            padding: 0.25rem !important;
+        }
+        
+        .company-header .dropdown-menu.show {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .company-header .dropdown-toggle::after {
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100" {% if session.user_id %}data-current-user="{{ session.username }}"{% endif %}>
+<!-- Main Header -->
+{% if session.user_id %}
+<header class="bg-light border-bottom sticky-top shadow-sm">
+    <!-- Company Header -->
+    <div class="company-header bg-primary text-white py-3">
+        <div class="container-fluid d-flex justify-content-between align-items-center flex-wrap">
+            <div class="d-flex align-items-center flex-grow-1 mb-2 mb-md-0">
+                <div class="logo-container me-3 position-relative">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" style="height: 50px;" class="logo-stable">
+                </div>
+                <div class="flex-grow-1">
+                    <h1 class="h4 mb-1 fw-bold text-shadow">
+                        <span class="d-none d-sm-inline">Mangla Tubes Private Limited</span>
+                        <span class="d-sm-none">Mangla Tubes</span>
+                    </h1>
+                    <p class="mb-0 small opacity-90 d-none d-lg-block">
+                        <i class="fas fa-rocket me-1"></i>
+                        Development Tracking System
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center d-none d-md-flex gap-3">
+                <div class="text-end">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas fa-clock me-2 text-warning"></i>
+                        <div id="currentTime" class="fw-bold fs-6"></div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-calendar me-2 text-info"></i>
+                        <div id="currentDate" class="small"></div>
+                    </div>
+                </div>
+                <div class="vr"></div>
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-user-circle fa-3x"></i>
+                    </div>
+                    <div class="text-start me-3">
+                        <div class="fw-bold fs-6">{{ session.username }}</div>
+                        <div class="small text-light opacity-75">
+                            <i class="fas fa-user-tag me-1"></i>{{ session.role|title }}
+                        </div>
+                    </div>
+                    <form method="POST" action="/ui/logout" style="margin: 0;">
+                        <button type="submit" class="btn btn-danger btn-sm" style="background-color: #dc3545 !important; border: none; padding: 0.5rem 1rem; font-weight: 600;">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light" style="padding: 0.25rem 0;">
+        <div class="container-fluid" style="padding: 0 1rem;">
+            <!-- Mobile User Info -->
+            <div class="d-lg-none d-flex align-items-center me-auto">
+                <i class="fas fa-user-circle text-primary me-2" style="font-size: 1.2rem;"></i>
+                <div>
+                    <div class="fw-bold" style="font-size: 0.75rem;">{{ session.username }}</div>
+                    <div class="text-muted" style="font-size: 0.6rem;">{{ session.role|title }}</div>
+                </div>
+            </div>
+            
+            <button class="navbar-toggler border-0 shadow-sm" style="padding: 0.2rem 0.4rem;" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon" style="width: 1em; height: 1em;"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 w-100">
+                    <!-- Dashboard - Always visible -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'ui.dashboard' %}active{% endif %}" href="/ui/dashboard" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+                            <i class="fas fa-tachometer-alt me-1" style="font-size: 0.75rem;"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Projects -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'projects' in request.endpoint %}active{% endif %}" href="/ui/projects" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+                            <i class="fas fa-folder me-1" style="font-size: 0.75rem;"></i>
+                            <span>Projects</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Settings - Admin Only -->
+                    {% if session.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'ui.admin_settings' %}active{% endif %}" href="/ui/settings" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+                            <i class="fas fa-cogs me-1 text-secondary" style="font-size: 0.75rem;"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Audit Logs - Admin Only -->
+                    {% if session.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'ui.admin_audit_logs' %}active{% endif %}" href="/ui/audit-logs" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+                            <i class="fas fa-history me-1" style="font-size: 0.75rem;"></i>
+                            <span>Audit Logs</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Mobile Logout -->
+                    <li class="nav-item d-lg-none mt-2 border-top pt-2">
+                        <form method="POST" action="/ui/logout" style="margin: 0; padding: 0;">
+                            <button type="submit" class="nav-link" style="background-color: #dc3545; color: white !important; font-weight: 600; border-radius: 6px; border: none; width: 100%; text-align: left; cursor: pointer; font-size: 0.8rem; padding: 0.35rem 0.5rem;">
+                                <i class="fas fa-sign-out-alt me-1" style="font-size: 0.75rem;"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-primary btn-sm" onclick="handlePageRefresh(event)" title="Refresh Page" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                        <i class="fas fa-sync-alt me-1" style="font-size: 0.65rem;"></i>
+                        <span class="d-none d-md-inline">Refresh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+{% endif %}
+
+<!-- Main Content -->
+<main class="flex-shrink-0 py-4">
+    <div class="container-fluid">
+        <!-- Flash Messages (Hidden - converted to toasts) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mtpl-flash-message" data-message="{{ message }}" data-type="{{ 'danger' if category == 'error' else category }}" style="display: none;"></div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="mt-auto py-2 bg-light border-top text-muted small">
+    <div class="container-fluid text-center">
+        &copy; 2025 Mangla Tubes Private Limited - Development Tracking System
+    </div>
+</footer>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+
+<!-- Chart.js - Only load on pages that need it -->
+{% block chart_js %}{% endblock %}
+
+<!-- Consolidated JavaScript - Load in correct order with defer for performance -->
+<script src="{{ url_for('static', filename='js/master-ui.js') }}?v=3.0" defer></script>
+<script src="{{ url_for('static', filename='js/modal-fix.js') }}?v=3.0" defer></script>
+<script src="{{ url_for('static', filename='js/button-fix.js') }}?v=3.0" defer></script>
+<script src="{{ url_for('static', filename='js/main.js') }}?v=3.0" defer></script>
+
+<!-- CRITICAL FIX: Remove any blocking overlays - ULTRA FAST -->
+<script>
+// Run immediately with minimal operations
+(function() {
+    // Only fix hidden backdrops - use simple selector
+    const fix = function() {
+        const b = document.querySelectorAll('.mtpl-modal-backdrop, .modal-backdrop');
+        for (let i = 0; i < b.length; i++) {
+            if (!b[i].classList.contains('show')) {
+                b[i].style.cssText = 'display:none!important;pointer-events:none!important;z-index:-9999!important';
+            }
+        }
+        document.body.style.pointerEvents = 'auto';
+        document.body.style.overflow = '';
+        if (document.querySelectorAll('.modal.show, .mtpl-modal-backdrop.show').length === 0) {
+            document.body.classList.remove('modal-open');
+        }
+    };
+    
+    // Run once
+    if (document.readyState !== 'loading') {
+        fix();
+    } else {
+        document.addEventListener('DOMContentLoaded', fix, { once: true });
+    }
+})();
+</script>
+
+<script>
+    // Enhanced clock for header
+    function updateTime() {
+        const now = new Date();
+        const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+        const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+        const timeString = now.toLocaleTimeString('en-US', timeOpts);
+        const dateString = now.toLocaleDateString('en-US', dateOpts);
+        
+        const currentTimeEl = document.getElementById('currentTime');
+        const currentDateEl = document.getElementById('currentDate');
+        
+        if (currentTimeEl && currentTimeEl.textContent !== timeString) {
+            currentTimeEl.textContent = timeString;
+        }
+        if (currentDateEl && currentDateEl.textContent !== dateString) {
+            currentDateEl.textContent = dateString;
+        }
+    }
+    
+    // Initialize clock
+    document.addEventListener('DOMContentLoaded', function() {
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Activate current nav link
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+                const dropdownToggle = link.closest('.dropdown')?.querySelector('.dropdown-toggle');
+                if(dropdownToggle) {
+                    dropdownToggle.classList.add('active');
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Master Modal System -->
+<div id="masterModal" class="master-modal">
+    <div class="master-modal-dialog">
+        <div class="master-modal-header">
+            <h3 id="masterModalTitle" class="master-modal-title"></h3>
+            <button type="button" class="master-modal-close" onclick="closeMasterModal()">&times;</button>
+        </div>
+        <div class="master-modal-body" id="masterModalBody">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+        <div class="master-modal-footer" id="masterModalFooter">
+            <!-- Dynamic footer buttons will be inserted here -->
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- Master Modal & Toast JavaScript -->
+<script>
+    // Master Modal System
+    function openMasterModal(options) {
+        const modal = document.getElementById('masterModal');
+        const dialog = modal.querySelector('.master-modal-dialog');
+        const title = document.getElementById('masterModalTitle');
+        const body = document.getElementById('masterModalBody');
+        const footer = document.getElementById('masterModalFooter');
+
+        // Set title
+        title.innerHTML = options.title || 'Modal';
+
+        // Set body content
+        if (typeof options.body === 'string') {
+            body.innerHTML = options.body;
+        } else if (options.body instanceof HTMLElement) {
+            body.innerHTML = '';
+            body.appendChild(options.body);
+        }
+
+        // Set size
+        dialog.className = 'master-modal-dialog';
+        if (options.size) {
+            dialog.classList.add(options.size === 'small' ? 'modal-sm' : options.size === 'large' ? 'modal-lg' : options.size === 'xl' ? 'modal-xl' : '');
+        }
+
+        // Set footer buttons
+        footer.innerHTML = '';
+        if (options.buttons && options.buttons.length > 0) {
+            options.buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = btn.class || 'btn-modal primary';
+                button.innerHTML = btn.text || 'Button';
+                button.onclick = btn.onclick || function() {};
+                footer.appendChild(button);
+            });
+        }
+
+        // Show modal
+        modal.classList.add('modal-open');
+        document.body.classList.add('modal-open');
+
+        // Close on backdrop click
+        modal.onclick = function(e) {
+            if (e.target === modal && !options.disableBackdropClose) {
+                closeMasterModal();
+            }
+        };
+    }
+
+    function closeMasterModal() {
+        const modal = document.getElementById('masterModal');
+        modal.classList.remove('modal-open');
+        document.body.classList.remove('modal-open');
+    }
+
+    // Toast Notification System
+    function showToast(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('toastContainer');
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        // Icon based on type
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+        
+        // Titles based on type
+        const titles = {
+            success: 'Success',
+            error: 'Error',
+            warning: 'Warning',
+            info: 'Information'
+        };
+        
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas ${icons[type] || icons.info}"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${titles[type] || titles.info}</div>
+                <p class="toast-message">${message}</p>
+            </div>
+            <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto remove after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                toast.classList.add('toast-hiding');
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, duration);
+        }
+        
+        return toast;
+    }
+
+    /* ============================================================================
+     * MASTER CONFIRMATION MODAL SYSTEM
+     * Replaces all browser confirm() dialogs with modern, consistent modals
+     * ============================================================================ */
+    
+    function showConfirmModal(options = {}) {
+        return new Promise((resolve) => {
+            const config = {
+                title: options.title || 'Confirm Action',
+                message: options.message || 'Are you sure you want to proceed?',
+                confirmText: options.confirmText || 'Confirm',
+                cancelText: options.cancelText || 'Cancel',
+                confirmClass: options.confirmClass || (options.dangerous ? 'btn-modal danger' : 'btn-modal primary'),
+                cancelClass: options.cancelClass || 'btn-modal secondary',
+                icon: options.icon || 'fas fa-exclamation-triangle',
+                onConfirm: options.onConfirm,
+                onCancel: options.onCancel,
+                dangerous: options.dangerous || false
+            };
+            
+            const iconColor = config.dangerous ? 'text-danger' : 
+                              (config.icon === 'fas fa-save' ? 'text-primary' : 'text-warning');
+            
+            openMasterModal({
+                title: `<i class="${config.icon} ${iconColor} me-2"></i>${config.title}`,
+                body: `
+                    <div class="text-center py-3">
+                        <div class="mb-3">
+                            <i class="${config.icon} fa-3x ${iconColor} mb-3"></i>
+                        </div>
+                        <p class="fs-5 mb-0" style="white-space: pre-line;">${config.message}</p>
+                    </div>
+                `,
+                size: 'small',
+                disableBackdropClose: true,
+                buttons: [
+                    {
+                        text: `<i class="fas fa-times me-2"></i>${config.cancelText}`,
+                        class: config.cancelClass,
+                        onclick: () => {
+                            closeMasterModal();
+                            if (config.onCancel) config.onCancel();
+                            resolve(false);
+                        }
+                    },
+                    {
+                        text: `<i class="fas fa-check me-2"></i>${config.confirmText}`,
+                        class: config.confirmClass,
+                        onclick: () => {
+                            closeMasterModal();
+                            if (config.onConfirm) config.onConfirm();
+                            resolve(true);
+                        }
+                    }
+                ]
+            });
+        });
+    }
+    
+    function confirmDelete(itemName, onConfirm, options = {}) {
+        return showConfirmModal({
+            title: options.title || 'Delete Confirmation',
+            message: options.message || `Are you sure you want to delete "${itemName}"? This action cannot be undone.`,
+            confirmText: 'Delete',
+            dangerous: true,
+            icon: 'fas fa-trash',
+            onConfirm: onConfirm,
+            ...options
+        });
+    }
+    
+    function confirmSave(message, onConfirm, options = {}) {
+        return showConfirmModal({
+            title: options.title || 'Save Confirmation',
+            message: message || 'Do you want to save these changes?',
+            confirmText: 'Save',
+            confirmClass: 'btn-modal primary',
+            icon: 'fas fa-save',
+            onConfirm: onConfirm,
+            ...options
+        });
+    }
+    
+    function confirmClear(message, onConfirm, options = {}) {
+        return showConfirmModal({
+            title: options.title || 'Clear Confirmation',
+            message: message || 'Are you sure you want to clear all data? This action cannot be undone.',
+            confirmText: 'Clear',
+            dangerous: true,
+            icon: 'fas fa-broom',
+            onConfirm: onConfirm,
+            ...options
+        });
+    }
+
+    // Smart page refresh handler
+    function handlePageRefresh(event) {
+        // Prevent default button behavior
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        const refreshBtn = event ? event.target.closest('button') : null;
+        const icon = refreshBtn ? refreshBtn.querySelector('i') : null;
+        if (icon) {
+            icon.classList.add('fa-spin');
+        }
+        
+        if (typeof refreshData === 'function') {
+            const result = refreshData();
+            if (result && result.then) {
+                result.then(() => {
+                    if (icon) {
+                        setTimeout(() => icon.classList.remove('fa-spin'), 500);
+                    }
+                }).catch(() => {
+                    if (icon) icon.classList.remove('fa-spin');
+                });
+            } else {
+                if (icon) {
+                    setTimeout(() => icon.classList.remove('fa-spin'), 500);
+                }
+            }
+        } else {
+            location.reload();
+        }
+    }
+
+    // Expose functions globally
+    window.openMasterModal = openMasterModal;
+    window.closeMasterModal = closeMasterModal;
+    window.showConfirmModal = showConfirmModal;
+    window.confirmDelete = confirmDelete;
+    window.confirmSave = confirmSave;
+    window.confirmClear = confirmClear;
+    window.showToast = showToast;
+    window.handlePageRefresh = handlePageRefresh;
+
+    // Keyboard support for modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('masterModal');
+            if (modal.classList.contains('modal-open')) {
+                closeMasterModal();
+            }
+        }
+    });
+    
+    // Prevent future dates in all date inputs (except expected/planned dates)
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        const dateInputs = document.querySelectorAll('input[type="date"]');
+        
+        dateInputs.forEach(dateInput => {
+            // Skip date restriction for expected/planned/future date fields
+            const name = dateInput.getAttribute('name') || '';
+            const id = dateInput.getAttribute('id') || '';
+            const isFutureDate = name.includes('expected') || name.includes('planned') || name.includes('estimated') ||
+                                 id.includes('expected') || id.includes('planned') || id.includes('estimated') ||
+                                 id === 'endDate';
+            
+            if (isFutureDate) {
+                // Allow future dates for expected/planned dates
+                return;
+            }
+            
+            if (!dateInput.hasAttribute('max') || dateInput.getAttribute('max') === '') {
+                dateInput.setAttribute('max', today);
+            }
+            
+            dateInput.addEventListener('change', function() {
+                const selectedDate = new Date(this.value);
+                const todayDate = new Date(today);
+                
+                if (selectedDate > todayDate) {
+                    showToast('Date cannot be in the future. Please select today or an earlier date.', 'error');
+                    this.value = today;
+                    this.classList.add('is-invalid');
+                    setTimeout(() => {
+                        this.classList.remove('is-invalid');
+                    }, 2000);
+                }
+            });
+        });
+    });
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

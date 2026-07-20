@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6">{{ stage.name }}</h1>
+        <p class="text-muted mb-0">
+            Part of Project: <a href="/ui/projects/{{ stage.project_id }}">#{{ stage.project_id }}</a>
+        </p>
+    </div>
+    <div class="text-end">
+        <a href="/ui/projects/{{ stage.project_id }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Project</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Stage Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/ui/stages/{{ stage.id }}/update" class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Responsible Department</label>
+                        <input type="text" class="form-control" value="{% if stage.responsible_department %}{{ stage.responsible_department.department_name }}{% else %}Not Assigned{% endif %}" disabled readonly />
+                        <small class="text-muted">Department is set from template and cannot be changed in project</small>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Responsible Designation <span class="text-danger">*</span></label>
+                        <select class="form-select" name="responsible_designation_id" required>
+                            <option value="">Select Designation...</option>
+                            {% for designation in designations %}
+                            <option value="{{ designation.id }}" {% if stage.responsible_designation_id == designation.id %}selected{% endif %}>{{ designation.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Expected End Date</label>
+                        <input class="form-control" type="date" name="expected_end_date" value="{{ stage.expected_end_date.strftime('%Y-%m-%d') if stage.expected_end_date }}" />
+                    </div>
+                    <div class="col-12 d-flex justify-content-between align-items-center">
+                        <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save Changes</button>
+                        {% if current_user.is_super_admin or session.get('unified_role', '').lower() == 'admin' %}
+                        <form method="post" action="/ui/stages/{{ stage.id }}/delete" data-confirm="Are you sure you want to delete this stage?">
+                            <button type="submit" class="btn btn-link text-danger"><i class="bi bi-trash"></i> Delete Stage</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Steps ({{ stage.steps|length }})</h5>
+                <div class="d-flex align-items-center gap-2">
+                    {% if stage.actual_end_date %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle-fill me-1"></i>Stage Completed
+                    </span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">
+                        <i class="bi bi-clock-fill me-1"></i>In Progress
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Start Date</th>
+                            <th>Est. Completion</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for st in stage.steps %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ st.name }}</td>
+                            <td>{{ st.start_date.strftime('%d/%m/%Y') if st.start_date else '-' }}</td>
+                            <td>{{ st.estimated_completion_date.strftime('%d/%m/%Y') if st.estimated_completion_date else '-' }}</td>
+                            <td><span class="badge bg-{{ 'success' if st.status == 'completed' else 'secondary' }}">{{ st.status }}</span></td>
+                            <td>
+                                <form method="post" action="/ui/steps/{{ st.id }}/status" class="d-inline" data-confirm="Are you sure you want to mark this step as complete?">
+                                    <input type="hidden" name="status" value="completed">
+                                    <button class="btn btn-sm btn-success" {% if st.status == 'completed' %}disabled{% endif %}><i class="bi bi-check-circle"></i></button>
+                                </form>
+                                {% if current_user.is_super_admin or session.get('unified_role', '').lower() == 'admin' %}
+                                <form method="post" action="/ui/steps/{{ st.id }}/delete" class="d-inline" data-confirm="Delete this step?">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted">No steps yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <hr>
+                <h6>Add New Step</h6>
+                <form method="post" action="/ui/stages/{{ stage.id }}/steps" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small">Step Name</label>
+                        <input class="form-control" type="text" name="name" placeholder="New step name" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Start Date</label>
+                        <input class="form-control" type="date" name="start_date">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Est. Completion</label>
+                        <input class="form-control" type="date" name="estimated_completion_date">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg"></i> Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

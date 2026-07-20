@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- Display flash messages prominently -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="row justify-content-center mb-3">
+            <div class="col-md-12">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'exclamation-circle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                        <strong>{{ message }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% endwith %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-header py-2 px-3" style="background: #f8f9fa; border-bottom: 3px solid #3b82f6;">
+                <h5 class="mb-0 fw-bold" style="color: #1f2937;"><i class="bi bi-plus-circle text-primary me-2"></i>Create New Project</h5>
+            </div>
+            <div class="card-body p-3">
+                <form method="post" action="/ui/projects/new" id="projectForm">
+                    
+                    <!-- Project Overview Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                            <i class="bi bi-folder text-primary me-2" style="font-size: 1.2rem;"></i>Project Overview
+                        </h6>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label for="projectName" class="form-label mb-1 fw-semibold" style="color: #475569; font-size: 0.875rem;">Project Name <span class="text-danger">*</span></label>
+                                <input id="projectName" class="form-control" type="text" name="name" placeholder="Enter project name" required style="border-radius: 8px; padding: 10px 14px; border: 1.5px solid #cbd5e1; font-size: 0.95rem;" />
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <label for="partDescription" class="form-label mb-1 fw-semibold" style="color: #475569; font-size: 0.875rem;">Description <span class="text-danger">*</span></label>
+                                <input id="partDescription" class="form-control" type="text" name="part_description" placeholder="Brief project description" required style="border-radius: 8px; padding: 10px 14px; border: 1.5px solid #cbd5e1; font-size: 0.95rem;" />
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="location" class="form-label mb-1 fw-semibold" style="color: #475569; font-size: 0.875rem;">Location <span class="text-danger">*</span></label>
+                                <select id="location" class="form-select" name="location" required style="border-radius: 8px; padding: 10px 14px; border: 1.5px solid #cbd5e1; font-size: 0.95rem;">
+                                    <option value="">-- Select Location --</option>
+                                    {% for loc in locations %}
+                                    <option value="{{ loc.name }}">{{ loc.code }} - {{ loc.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="companyName" class="form-label mb-1 fw-semibold" style="color: #475569; font-size: 0.875rem;">Company Name <span class="text-danger">*</span></label>
+                                <select id="companyName" class="form-select" name="company_name" required style="border-radius: 8px; padding: 10px 14px; border: 1.5px solid #cbd5e1; font-size: 0.95rem;">
+                                    <option value="">-- Select Company --</option>
+                                    {% for comp in companies %}
+                                    <option value="{{ comp.name }}">{{ comp.code }} - {{ comp.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Part Details Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                            <i class="bi bi-box-seam text-primary me-2" style="font-size: 1.2rem;"></i>Part Details
+                        </h6>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="partName" class="form-label mb-1 fw-semibold" style="color: #475569; font-size: 0.875rem;">Part Name <span class="text-danger">*</span></label>
+                                <input id="partName" class="form-control" type="text" name="part_name" placeholder="Enter part name" required style="border-radius: 8px; padding: 10px 14px; border: 1.5px solid #cbd5e1; font-size: 0.95rem;" />
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="partCode" class="form-label mb-1 fw-semibold" style="color: #475569; font-size: 0.875rem;">Part Code <span class="text-danger">*</span></label>
+                                <input id="partCode" class="form-control" type="text" name="part_code" placeholder="Enter part code" required style="border-radius: 8px; padding: 10px 14px; border: 1.5px solid #cbd5e1; font-size: 0.95rem;" />
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="customerName" class="form-label mb-1 fw-semibold" style="color: #475569; font-size: 0.875rem;">Customer Name <span class="text-danger">*</span></label>
+                                <input id="customerName" class="form-control" type="text" name="customer_name" placeholder="Enter customer name" required style="border-radius: 8px; padding: 10px 14px; border: 1.5px solid #cbd5e1; font-size: 0.95rem;" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project Leadership Section -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                            <i class="bi bi-people text-primary me-2" style="font-size: 1.2rem;"></i>Project Leadership
+                        </h6>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="projectHead" class="form-label mb-1 fw-semibold" style="color: #475569; font-size: 0.875rem;">Project Head <span class="text-danger">*</span></label>
+                                <select id="projectHead" class="form-select" name="head_id" required style="border-radius: 8px; padding: 10px 14px; border: 1.5px solid #cbd5e1; font-size: 0.95rem;">
+                                    <option value="">-- Select Project Head --</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" 
+                                            data-designation="{{ user.designation or '' }}" 
+                                            data-department="{{ user.department or '' }}">
+                                        {{ user.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Removed Designation and Department fields as requested -->
+                        </div>
+                    </div>
+
+                    <!-- Configure Phases and Stages -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 d-flex align-items-center" style="font-size: 1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                            <i class="bi bi-diagram-3 text-primary me-2" style="font-size: 1.2rem;"></i>Project Phases (APQP Process)
+                        </h6>
+
+                        <div id="phasesContainer">
+                            <!-- Phases will be dynamically loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex gap-3">
+                        <button class="btn btn-primary px-5 py-2" type="submit" style="border-radius: 8px; font-weight: 600; font-size: 1rem; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);">
+                            <i class="bi bi-check-circle me-2"></i>Create Project
+                        </button>
+                        <a class="btn btn-outline-secondary px-5 py-2" href="/ui/projects" style="border-radius: 8px; font-weight: 600; font-size: 1rem;">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Pass departments and users from server to JavaScript
+const departments = {{ departments | tojson }};
+const users = {{ users | tojson }};
+
+// Generate HTML options for departments and users
+const departmentOptions = departments.map(d => `<option value="${d.name}">${d.name} (${d.code})</option>`).join('');
+const userOptions = users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+
+// Template structure is automatically loaded from /api/template-structure
+// No authentication required - this endpoint is public for creating projects
+// Projects are created with phases/stages from the active template in the database
+
+function loadPhasesAndStagesFromTemplate(phases) {
+    const container = document.getElementById('phasesContainer');
+    container.innerHTML = '';
+    
+    phases.forEach((phase, phaseIdx) => {
+        const phaseCard = document.createElement('div');
+        phaseCard.className = 'card mb-2 shadow-sm';
+        phaseCard.innerHTML = `
+            <div class="card-header py-2" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-white">
+                        ${phaseIdx + 1}. ${phase.name}
+                    </h6>
+                    <span class="badge bg-white text-primary">${phase.stages ? phase.stages.length : 0} STAGES</span>
+                </div>
+            </div>
+            <div class="card-body p-2">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0" style="font-size: 0.85rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 3%;">S.No</th>
+                                <th style="width: 50%;">Stage Name</th>
+                                <th style="width: 24%;">Responsible Person</th>
+                                <th style="width: 23%;">Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="phase${phaseIdx}Stages">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        container.appendChild(phaseCard);
+        
+        const tbody = document.getElementById(`phase${phaseIdx}Stages`);
+        
+        if (phase.stages && phase.stages.length > 0) {
+            phase.stages.forEach((stage, stageIdx) => {
+                const row = document.createElement('tr');
+                
+                // Show department name from template (read-only)
+                let departmentName = '-- Not Set --';
+                if (stage.default_responsible_department_id) {
+                    const dept = departments.find(d => d.id == stage.default_responsible_department_id);
+                    if (dept) {
+                        departmentName = `${dept.name} (${dept.code})`;
+                    }
+                }
+                
+                // Pre-select responsible user if available
+                let userSelect = `<select class="form-select form-select-sm" name="stage_responsible_${phaseIdx}_${stageIdx}">
+                    <option value="">-- Not Assigned --</option>`;
+                users.forEach(user => {
+                    const selected = stage.default_responsible_user_id == user.id ? 'selected' : '';
+                    const userName = user.full_name || user.name;
+                    userSelect += `<option value="${user.id}" ${selected}>${userName}</option>`;
+                });
+                userSelect += '</select>';
+                
+                row.innerHTML = `
+                    <td class="text-center align-middle">${stageIdx + 1}</td>
+                    <td class="align-middle">
+                        <small>${stage.name}</small>
+                        <br><span class="badge bg-secondary" style="font-size: 0.7rem;">Dept: ${departmentName}</span>
+                    </td>
+                    <td>${userSelect}</td>
+                    <td>
+                        <input type="date" class="form-control form-control-sm" name="stage_completion_date_${phaseIdx}_${stageIdx}" />
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    });
+}
+
+// Show toast notifications for flash messages
+document.addEventListener('DOMContentLoaded', function() {
+    const flashMessages = document.querySelectorAll('.mtpl-flash-message');
+    flashMessages.forEach(msg => {
+        const message = msg.getAttribute('data-message');
+        const type = msg.getAttribute('data-type');
+        if (typeof showMTPLToast === 'function') {
+            showMTPLToast(message, type, 5000);
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('projectForm');
+    const endDateInput = document.getElementById('endDate');
+    const projectHeadSelect = document.getElementById('projectHead');
+    const designationSelect = document.getElementById('designation');
+    const departmentSelect = document.getElementById('department');
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    endDateInput.setAttribute('min', today);
+    
+    // Auto-fill designation and department when project head is selected
+    projectHeadSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const designation = selectedOption.getAttribute('data-designation');
+        const department = selectedOption.getAttribute('data-department');
+        
+        // Auto-fill designation if available
+        if (designation) {
+            // Find and select the matching designation option
+            for (let option of designationSelect.options) {
+                if (option.value === designation) {
+                    designationSelect.value = designation;
+                    break;
+                }
+            }
+        }
+        
+        // Auto-fill department if available
+        if (department) {
+            // Find and select the matching department option
+            for (let option of departmentSelect.options) {
+                if (option.value === department) {
+                    departmentSelect.value = department;
+                    break;
+                }
+            }
+        }
+    });
+    
+    // Load phases and stages immediately on page load
+    loadPhasesAndStages();
+    
+    // Form validation on submit
+    form.addEventListener('submit', function(e) {
+        // Validate date
+        const endDate = new Date(endDateInput.value);
+        const startDate = new Date(today);
+        if (endDate < startDate) {
+            e.preventDefault();
+            alert('Expected End Date cannot be before the Start Date (today).');
+            endDateInput.focus();
+            return false;
+        }
+    });
+    
+    // Load phases and stages dynamically from database template
+    async function loadPhasesAndStages() {
+        const container = document.getElementById('phasesContainer');
+        container.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        
+        try {
+            // Fetch template structure from database
+            const response = await fetch('/api/template-structure');
+            const data = await response.json();
+            
+            if (!response.ok) {
+                console.error('Failed to load template structure:', data.error);
+                container.innerHTML = '<div class="alert alert-warning">Failed to load template structure. Please refresh the page.</div>';
+                return;
+            }
+            
+            // Convert structure to match the format expected by the rendering code
+            // Keep full stage objects to access department and designation info
+            const templateStructure = data.structure;
+            
+            // Render the phases and stages
+            container.innerHTML = '';
+            templateStructure.forEach((phase, phaseIdx) => {
+            const phaseCard = document.createElement('div');
+            phaseCard.className = 'card mb-2 shadow-sm';
+            phaseCard.innerHTML = `
+                <div class="card-header py-2" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold text-white">
+                            ${phaseIdx + 1}. ${phase.name}
+                        </h6>
+                        <span class="badge bg-white text-primary">${phase.stages.length} STAGES</span>
+                    </div>
+                </div>
+                <div class="card-body p-2">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0" style="font-size: 0.85rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 3%;">S.No</th>
+                                    <th style="width: 40%;">Stage Name</th>
+                                    <th style="width: 19%;">Department</th>
+                                    <th style="width: 19%;">Responsible Person</th>
+                                    <th style="width: 19%;">Completion Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="phase${phaseIdx}Stages">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            container.appendChild(phaseCard);
+            
+            const tbody = document.getElementById(`phase${phaseIdx}Stages`);
+            phase.stages.forEach((stage, stageIdx) => {
+                const row = document.createElement('tr');
+                
+                // Build department dropdown with auto-filled value
+                let departmentOptionsHtml = '<option value="">-- Not Assigned --</option>';
+                departments.forEach(dept => {
+                    const isSelected = stage.department && dept.code === stage.department ? 'selected' : '';
+                    departmentOptionsHtml += `<option value="${dept.name}" ${isSelected}>${dept.name} (${dept.code})</option>`;
+                });
+                
+                // Build user dropdown with auto-filled value from template
+                let userOptionsHtml = '<option value="">-- Not Assigned --</option>';
+                users.forEach(user => {
+                    const isSelected = stage.responsible_user_id && user.id == stage.responsible_user_id ? 'selected' : '';
+                    const userName = user.full_name || user.name;
+                    userOptionsHtml += `<option value="${user.id}" ${isSelected}>${userName}</option>`;
+                });
+                
+                row.innerHTML = `
+                    <td class="text-center align-middle">${stageIdx + 1}</td>
+                    <td class="align-middle"><small>${stage.name}</small></td>
+                    <td>
+                        <select class="form-select form-select-sm" name="stage_department_${phaseIdx}_${stageIdx}">
+                            ${departmentOptionsHtml}
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm" name="stage_responsible_${phaseIdx}_${stageIdx}">
+                            ${userOptionsHtml}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="date" class="form-control form-control-sm stage-date-input" 
+                               name="stage_completion_date_${phaseIdx}_${stageIdx}" 
+                               data-phase-idx="${phaseIdx}" 
+                               data-stage-idx="${stageIdx}" />
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+            
+        // Add event listeners to stage date inputs to auto-update project due date
+        setTimeout(() => {
+            updateProjectDueDate();
+            document.querySelectorAll('.stage-date-input').forEach(input => {
+                input.addEventListener('change', updateProjectDueDate);
+            });
+        }, 100);
+            
+        } catch (error) {
+            console.error('Error loading template structure:', error);
+            container.innerHTML = '<div class="alert alert-danger">Error loading template structure. Please refresh the page.</div>';
+        }
+    }
+    
+    // Function to automatically set project due date based on last stage date
+    function updateProjectDueDate() {
+        const allDates = [];
+        document.querySelectorAll('.stage-date-input').forEach(input => {
+            if (input.value) {
+                allDates.push(new Date(input.value));
+            }
+        });
+        
+        if (allDates.length > 0) {
+            // Find the latest date
+            const latestDate = new Date(Math.max(...allDates));
+            const endDateInput = document.getElementById('endDate');
+            endDateInput.value = latestDate.toISOString().split('T')[0];
+        }
+    }
+});
+</script>
+{% endblock %}

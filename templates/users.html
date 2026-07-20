@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Remove hover effect from data rows */
+    .table.no-body-hover tbody tr:hover {
+        background-color: transparent !important;
+    }
+    
+    /* Add hover effect to header row */
+    .table thead tr:hover {
+        background-color: #e9ecef !important;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    /* Filter panel styles */
+    .form-select, .form-control {
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    }
+
+    .input-group-text {
+        background: #f8f9fa;
+        border-color: #e5e7eb;
+        color: #6b7280;
+    }
+
+    .form-label {
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    /* Filter collapse animation */
+    #filterCollapse {
+        transition: all 0.3s ease;
+    }
+
+    /* Active filter badge */
+    .badge.bg-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    }
+
+    /* Statistics cards hover effect */
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Button styles */
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        border: none !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+    }
+
+    /* Table improvements */
+    .table th {
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    /* Badge improvements */
+    .badge {
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1 fw-bold" style="color: #1f2937;">
+            <i class="bi bi-people text-primary me-2"></i>Users Management
+        </h1>
+        <p class="text-muted mb-0 small">Centralized user management across all MTPL applications</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse" style="border-radius: 8px;">
+            <i class="bi bi-funnel me-2"></i>Filters
+            {% if filter_data.current_filters.role or filter_data.current_filters.status or filter_data.current_filters.department or filter_data.current_filters.location or filter_data.current_filters.designation or filter_data.current_filters.search %}
+            <span class="badge bg-primary ms-1">Active</span>
+            {% endif %}
+        </button>
+    </div>
+</div>
+
+<!-- Active Filters Summary -->
+{% if filter_data.current_filters.role or filter_data.current_filters.status or filter_data.current_filters.department or filter_data.current_filters.location or filter_data.current_filters.designation or filter_data.current_filters.search %}
+<div class="mb-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="text-muted small fw-semibold">Active Filters:</span>
+        {% if filter_data.current_filters.search %}
+        <span class="badge bg-info">Search: "{{ filter_data.current_filters.search }}"</span>
+        {% endif %}
+        {% if filter_data.current_filters.role %}
+        <span class="badge bg-secondary">Role: {{ filter_data.current_filters.role|title }}</span>
+        {% endif %}
+        {% if filter_data.current_filters.status %}
+        <span class="badge bg-secondary">Status: {{ filter_data.current_filters.status|title }}</span>
+        {% endif %}
+        {% if filter_data.current_filters.department %}
+        <span class="badge bg-secondary">Department: {{ filter_data.current_filters.department }}</span>
+        {% endif %}
+        {% if filter_data.current_filters.location %}
+        <span class="badge bg-secondary">Location: {{ filter_data.current_filters.location }}</span>
+        {% endif %}
+        {% if filter_data.current_filters.designation %}
+        <span class="badge bg-secondary">Designation: {{ filter_data.current_filters.designation }}</span>
+        {% endif %}
+        <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" onclick="clearFilters()" title="Clear all filters">
+            <i class="bi bi-x-circle"></i>
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Filter Panel -->
+<div class="collapse mb-4" id="filterCollapse">
+    <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+        <div class="card-body">
+            <form method="GET" id="filterForm">
+                <!-- Search Bar -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Search Users</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="border-radius: 8px 0 0 8px; background: #f8f9fa; border-color: #e5e7eb;">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control" name="search" placeholder="Search by name, username, or employee ID..." 
+                                   value="{{ filter_data.current_filters.search or '' }}" 
+                                   style="border-radius: 0 8px 8px 0; border-left: none;">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Role</label>
+                        <select class="form-select" name="role" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">All Roles</option>
+                            {% for role in filter_data.roles %}
+                            <option value="{{ role }}" {% if filter_data.current_filters.role == role %}selected{% endif %}>{{ role|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select class="form-select" name="status" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">All Status</option>
+                            <option value="active" {% if filter_data.current_filters.status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if filter_data.current_filters.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Department</label>
+                        <select class="form-select" name="department" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">All Departments</option>
+                            {% for dept in filter_data.departments %}
+                            <option value="{{ dept.name }}" {% if filter_data.current_filters.department == dept.name %}selected{% endif %}>{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Location</label>
+                        <select class="form-select" name="location" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">All Locations</option>
+                            {% for location in filter_data.locations %}
+                            <option value="{{ location.name }}" {% if filter_data.current_filters.location == location.name %}selected{% endif %}>{{ location.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Designation</label>
+                        <select class="form-select" name="designation" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">All Designations</option>
+                            {% for designation in filter_data.designations %}
+                            <option value="{{ designation }}" {% if filter_data.current_filters.designation == designation %}selected{% endif %}>{{ designation }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3 d-flex gap-2 align-items-center">
+                    <button type="submit" class="btn btn-primary btn-sm" style="border-radius: 8px;">
+                        <i class="bi bi-search me-1"></i>Apply Filters
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearFilters()" style="border-radius: 8px;">
+                        <i class="bi bi-x-circle me-1"></i>Clear All
+                    </button>
+                    <div class="ms-auto">
+                        <span class="text-muted small">{{ users|length }} user(s) found</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center" style="border-radius: 12px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+            <div class="card-body text-white">
+                <i class="bi bi-people-fill" style="font-size: 2rem;"></i>
+                <h3 class="mt-2 mb-0">{{ users|length }}</h3>
+                <small>Total Users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center" style="border-radius: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <div class="card-body text-white">
+                <i class="bi bi-person-check-fill" style="font-size: 2rem;"></i>
+                <h3 class="mt-2 mb-0">{{ users|selectattr('is_active')|list|length }}</h3>
+                <small>Active Users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center" style="border-radius: 12px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+            <div class="card-body text-white">
+                <i class="bi bi-person-x-fill" style="font-size: 2rem;"></i>
+                <h3 class="mt-2 mb-0">{{ users|rejectattr('is_active')|list|length }}</h3>
+                <small>Inactive Users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center" style="border-radius: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+            <div class="card-body text-white">
+                <i class="bi bi-shield-fill-check" style="font-size: 2rem;"></i>
+                <h3 class="mt-2 mb-0">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h3>
+                <small>Administrators</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info" role="alert">
+    <i class="bi bi-info-circle-fill"></i>
+    <strong>Centralized User Management:</strong> 
+    These users are shared across all MTPL applications (Development Tracking, Packaging, Document Management, Unified Page).
+    To add or edit users, please use the <strong>Unified Page</strong> application.
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-people-fill"></i> All System Users</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    {% if users %}
+                    <table class="table table-striped no-body-hover">
+                        <thead>
+                            <tr class="table-light">
+                                <th style="width: 5%;">ID</th>
+                                <th style="width: 15%;">Full Name</th>
+                                <th style="width: 12%;">Username</th>
+                                <th style="width: 10%;">Role</th>
+                                <th style="width: 8%;">Status</th>
+                                <th style="width: 15%;">Department</th>
+                                <th style="width: 12%;">Location</th>
+                                <th style="width: 12%;">Designation</th>
+                                <th style="width: 11%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr class="{% if loop.first %}table-light{% endif %} {% if not u.is_active %}text-muted{% endif %}">
+                                <td class="fw-bold">{{ u.id }}</td>
+                                <td>
+                                    <div class="fw-semibold">{{ u.full_name }}</div>
+                                    {% if u.employee_id %}
+                                    <small class="text-muted">ID: {{ u.employee_id }}</small>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ u.username }}</strong></td>
+                                <td><span class="badge bg-info">{{ u.role|title }}</span></td>
+                                <td>
+                                    {% if u.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if u.department %}
+                                    <div class="small">{{ u.department.department_name }}</div>
+                                    {% else %}
+                                    <span class="text-muted">--</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if u.location %}
+                                    <div class="small">{{ u.location.location_name }}</div>
+                                    {% else %}
+                                    <span class="text-muted">--</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if u.designation %}
+                                    <div class="small">{{ u.designation }}</div>
+                                    {% else %}
+                                    <span class="text-muted">--</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if session['user_id'] != u.id %}
+                                        <div class="d-flex gap-1">
+                                            {% if u.is_active %}
+                                            <form method="post" action="{{ url_for('ui.delete_user', user_id=u.id) }}" onsubmit="return confirm('Deactivate user {{ u.username }}? References will be cleared.');">
+                                                <button type="submit" class="btn btn-sm btn-warning" title="Deactivate"><i class="bi bi-person-dash"></i></button>
+                                            </form>
+                                            {% endif %}
+                                            <form method="post" action="{{ url_for('ui.delete_user', user_id=u.id) }}" onsubmit="return confirm('Hard delete user {{ u.username }}? This cannot be undone.');">
+                                                <input type="hidden" name="hard_delete" value="1" />
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Hard Delete"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted small">(You)</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-person-x" style="font-size: 4rem; color: #d1d5db;"></i>
+                        </div>
+                        <h5 class="mb-3">No Users Found</h5>
+                        <p class="text-muted mb-4">No users match your current filter criteria.</p>
+                        <button type="button" class="btn btn-outline-primary" onclick="clearFilters()" style="border-radius: 8px;">
+                            <i class="bi bi-funnel me-1"></i>Clear Filters
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                <p class="text-muted mb-0 mt-3">
+                    <small><i class="bi bi-info-circle"></i> Total: {{ users|length }} users</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function clearFilters() {
+    // Clear all filter form fields
+    const form = document.getElementById('filterForm');
+    const selects = form.querySelectorAll('select');
+    const inputs = form.querySelectorAll('input[type="text"]');
+    
+    selects.forEach(select => {
+        select.value = '';
+    });
+    
+    inputs.forEach(input => {
+        input.value = '';
+    });
+    
+    // Submit the form to apply cleared filters
+    form.submit();
+}
+
+// Auto-expand filter panel if any filters are active
+document.addEventListener('DOMContentLoaded', function() {
+    const hasActiveFilters = {{ 'true' if (filter_data.current_filters.role or filter_data.current_filters.status or filter_data.current_filters.department or filter_data.current_filters.location or filter_data.current_filters.designation or filter_data.current_filters.search) else 'false' }};
+    
+    if (hasActiveFilters) {
+        const filterCollapse = document.getElementById('filterCollapse');
+        if (filterCollapse) {
+            filterCollapse.classList.add('show');
+        }
+    }
+});
+</script>
+{% endblock %}
