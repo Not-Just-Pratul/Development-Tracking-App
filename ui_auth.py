@@ -109,8 +109,11 @@ def login():
                 return render_template('login.html')
             
             # Update last login
-            cur.execute("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s", (user_id,))
-            conn.commit()
+            try:
+                cur.execute("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s", (user_id,))
+                conn.commit()
+            except Exception as login_update_error:
+                logger.warning(f"Login succeeded but last_login update failed for user {user_id}: {login_update_error}")
             
             # Create JWT token for API calls
             jwt_claims = {
