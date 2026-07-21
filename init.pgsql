@@ -71,29 +71,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================================
--- MIGRATION: Remove old columns if they exist
--- ============================================================================
--- Drop indexes first
-DROP INDEX IF EXISTS idx_users_email;
-
--- Drop columns from existing tables (for database upgrades)
-ALTER TABLE IF EXISTS users DROP COLUMN IF EXISTS phone;
-ALTER TABLE IF EXISTS companies DROP COLUMN IF EXISTS email;
-ALTER TABLE IF EXISTS companies DROP COLUMN IF EXISTS phone;
-ALTER TABLE IF EXISTS locations DROP COLUMN IF EXISTS phone;
-
--- Ensure email column exists on users
-ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS email VARCHAR(120);
-
--- Drop old columns from projects table if they exist
-ALTER TABLE IF EXISTS projects DROP COLUMN IF EXISTS location;
-ALTER TABLE IF EXISTS projects DROP COLUMN IF EXISTS department_name;
-ALTER TABLE IF EXISTS projects DROP COLUMN IF EXISTS designation;
-
--- Update existing users to have created_date if null
-UPDATE users SET created_date = CURRENT_TIMESTAMP WHERE created_date IS NULL;
-
--- ============================================================================
 -- MASTER DATA TABLES
 -- ============================================================================
 
@@ -1080,6 +1057,29 @@ BEGIN
     WHERE template_phase_id = 5 AND serial_number IN (3, 4, 5);
 
 END $$;
+
+-- ============================================================================
+-- MIGRATION: Remove old columns if they exist (runs after tables are created)
+-- ============================================================================
+-- Drop indexes first
+DROP INDEX IF EXISTS idx_users_email;
+
+-- Drop columns from existing tables (for database upgrades)
+ALTER TABLE IF EXISTS users DROP COLUMN IF EXISTS phone;
+ALTER TABLE IF EXISTS companies DROP COLUMN IF EXISTS email;
+ALTER TABLE IF EXISTS companies DROP COLUMN IF EXISTS phone;
+ALTER TABLE IF EXISTS locations DROP COLUMN IF EXISTS phone;
+
+-- Ensure email column exists on users
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS email VARCHAR(120);
+
+-- Drop old columns from projects table if they exist
+ALTER TABLE IF EXISTS projects DROP COLUMN IF EXISTS location;
+ALTER TABLE IF EXISTS projects DROP COLUMN IF EXISTS department_name;
+ALTER TABLE IF EXISTS projects DROP COLUMN IF EXISTS designation;
+
+-- Update existing users to have created_date if null
+UPDATE users SET created_date = CURRENT_TIMESTAMP WHERE created_date IS NULL;
 
 -- ============================================================================
 -- GRANT PERMISSIONS
