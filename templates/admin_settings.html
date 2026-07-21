@@ -1168,6 +1168,20 @@ function escapeHtml(text) {
 // ========================================
 // FORWARD DECLARATIONS - Tab loading functions defined later
 // ========================================
+// ========================================
+// AUTH HEADER INJECTION FOR API CALLS
+// ========================================
+const originalFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+    if (typeof url === 'string' && url.startsWith('/api/')) {
+        options.headers = options.headers || {};
+        if (window.JWT_TOKEN && !options.headers['Authorization']) {
+            options.headers['Authorization'] = `Bearer ${window.JWT_TOKEN}`;
+        }
+    }
+    return originalFetch(url, options);
+};
+
 let loadUsersTab, loadDepartmentsTab, loadCompaniesTab, loadLocationsTab, loadDesignationsTab;
 
 // ========================================
