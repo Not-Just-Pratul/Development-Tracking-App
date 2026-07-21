@@ -2,6 +2,13 @@
 
 APQP (Advanced Product Quality Planning) project management system with automated workflows, department assignments, and role-based access control.
 
+## 🌐 Live Demo
+
+Try the application online:  
+**https://development-tracking-app-production.up.railway.app**
+
+Default login: `admin` / `admin123`
+
 ## 🚀 Portability Features
 
 This application is **100% portable** and works on any computer:
@@ -34,13 +41,6 @@ This application is **100% portable** and works on any computer:
 - **Reporting**: Export projects and stages to PDF/Excel
 - **Dashboard Analytics**: User performance, project health, overdue tracking
 - **REST API**: Full JSON API with JWT authentication
-
-## 🌐 Live Demo
-
-Try the application online:  
-**https://development-tracking-app-production.up.railway.app**
-
-Default login: `admin` / `admin123`
 
 ## Quick Start
 
