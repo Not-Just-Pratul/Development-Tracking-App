@@ -44,25 +44,28 @@ if __name__ == '__main__':
     print("Development Tracking System - Starting...")
     print("=" * 60)
     
-    # Quick schema validation check
-    print("\n[CHECK] Checking database schema consistency...")
-    try:
-        from validate_schema import main as validate_schema
-        if not validate_schema():
-            print("\n[WARN] WARNING: Schema validation failed!")
-            print("    The app may encounter runtime errors.")
-            print("    Run 'python validate_schema.py' for details.")
-            response = input("\n    Continue anyway? (y/N): ")
-            if response.lower() != 'y':
-                print("Startup cancelled.")
-                sys.exit(1)
-    except Exception as e:
-        print(f"[WARN] Could not validate schema: {e}")
-        print("   Continuing without validation...")
+    # Quick schema validation check - skip in production/Docker
+    skip_validation = os.getenv('SKIP_SCHEMA_VALIDATION', '0') == '1' or os.getenv('RAILWAY_ENVIRONMENT') == 'production'
+    
+    if not skip_validation:
+        print("\n[CHECK] Checking database schema consistency...")
+        try:
+            from validate_schema import main as validate_schema
+            if not validate_schema():
+                print("\n[WARN] WARNING: Schema validation failed!")
+                print("    The app may encounter runtime errors.")
+                print("    Run 'python validate_schema.py' for details.")
+                print("    Continuing anyway...")
+        except Exception as e:
+            print(f"[WARN] Could not validate schema: {e}")
+            print("   Continuing without validation...")
+    else:
+        print("\n[INFO] Skipping schema validation in production mode")
     
     print(f"\n[OK] Server configuration:")
-    print(f"  - Local:   http://127.0.0.1:{flask_port}")
-    print(f"  - Network: http://localhost:{flask_port}")
+    print(f"  - Host: {flask_host}")
+    print(f"  - Port: {flask_port}")
+    print(f"  - Debug: {flask_debug}")
     print(f"\nPress CTRL+C to quit")
     print("=" * 60)
     
@@ -70,8 +73,11 @@ if __name__ == '__main__':
         # Import and create the app using the factory function
         from __init__ import create_app
         app = create_app()
-        app.run(host=flask_host, port=flask_port, debug=flask_debug)
+        print(f"[OK] Application created successfully")
+        print(f"[OK] Starting server on {flask_host}:{flask_port}")
+        app.run(host=flask_host, port=flask_port, debug=flask_debug, threaded=True)
     except Exception as e:
-        print(f"\nError starting server: {e}")
+        print(f"\n[ERROR] Error starting server: {e}")
         import traceback
         traceback.print_exc()
+        sys.exit(1)

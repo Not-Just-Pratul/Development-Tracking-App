@@ -28,5 +28,17 @@ SESSION_TIMEOUT_MINUTES = 0
 MAX_LOGIN_ATTEMPTS = 0
 ENABLE_AUDIT_LOGS = True
 
+[EMAIL]
+# SMTP configuration for email notifications
+# Leave disabled to skip sending emails
+ENABLED = False
+SMTP_SERVER = smtp.gmail.com
+SMTP_PORT = 587
+SMTP_USERNAME = your_email@gmail.com
+SMTP_PASSWORD = your_app_password
+FROM_NAME = Development Tracking System
+FROM_EMAIL = your_email@gmail.com
+USE_TLS = True
+
 [SCHEMA]
 VERSION = 1

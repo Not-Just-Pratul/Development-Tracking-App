@@ -19,8 +19,9 @@ COPY . .
 # Create upload directories
 RUN mkdir -p uploads/stage_attachments uploads/step_attachments
 
-# Expose port
+# Expose port (Railway uses dynamic PORT env var)
 EXPOSE 5003
 
 # Run the application
+# Railway sets PORT automatically; run_server.py uses it.
 CMD ["python", "run_server.py"]
