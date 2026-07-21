@@ -5,6 +5,13 @@ from datetime import timedelta
 from unified_db import get_unified_db_connection
 from secure_auth import SecurityManager
 
+try:
+    from __init__ import db
+    from models import User
+    _HAS_SQLALCHEMY = True
+except Exception:
+    _HAS_SQLALCHEMY = False
+
 logger = logging.getLogger(__name__)
 
 ui_auth = Blueprint('ui_auth', __name__, url_prefix='/ui')
@@ -38,25 +45,52 @@ def login():
         
         try:
             # Get user from unified database
-            with get_unified_db_connection() as conn:
-                logger.info("Database connection established")
-                cur = conn.cursor()
-                cur.execute("""
-                    SELECT id, username, password_hash, full_name, role, is_super_admin, is_active
-                    FROM users WHERE username = %s
-                """, (username,))
-                
-                user = cur.fetchone()
-                logger.info(f"User query result: {user is not None}")
-                
-                if not user:
-                    logger.warning(f"Login failed: User not found - {username}")
-                    record_login_event(None, 'LOGIN_FAILED', 'User not found during UI login', False)
-                    flash('Invalid username or password', 'error')
-                    return render_template('login.html')
-                
-                user_id, username, password_hash, full_name, role, is_super_admin, is_active = user
-                logger.info(f"User found: ID={user_id}, Active={is_active}")
+            user = None
+            user_source = None
+            try:
+                with get_unified_db_connection() as conn:
+                    logger.info("Database connection established")
+                    cur = conn.cursor()
+                    cur.execute("""
+                        SELECT id, username, password_hash, full_name, role, is_super_admin, is_active
+                        FROM users WHERE username = %s
+                    """, (username,))
+                    
+                    user = cur.fetchone()
+                    logger.info(f"User query result: {user is not None}")
+                    if user:
+                        user_source = 'unified_db'
+            except Exception as db_error:
+                logger.error(f"Unified DB lookup failed: {db_error}", exc_info=True)
+            
+            # Fallback to SQLAlchemy if unified DB fails or returns no result
+            if not user and _HAS_SQLALCHEMY:
+                logger.info("Falling back to SQLAlchemy for user lookup")
+                try:
+                    local_user = User.query.filter_by(username=username).first()
+                    if local_user:
+                        user = (
+                            local_user.id,
+                            local_user.username,
+                            local_user.password_hash,
+                            local_user.full_name,
+                            local_user.role,
+                            local_user.is_super_admin,
+                            local_user.is_active,
+                        )
+                        user_source = 'sqlalchemy'
+                        logger.info(f"SQLAlchemy fallback found user: {user is not None}")
+                except Exception as sa_error:
+                    logger.error(f"SQLAlchemy fallback failed: {sa_error}", exc_info=True)
+            
+            if not user:
+                logger.warning(f"Login failed: User not found - {username} (source={user_source or 'none'})")
+                record_login_event(None, 'LOGIN_FAILED', 'User not found during UI login', False)
+                flash('Invalid username or password', 'error')
+                return render_template('login.html')
+            
+            user_id, username, password_hash, full_name, role, is_super_admin, is_active = user
+            logger.info(f"User found via {user_source}: ID={user_id}, Active={is_active}")
                 
                 # Check if user is active
                 if not is_active:
