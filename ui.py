@@ -4,6 +4,12 @@ from __init__ import db
 from authz import ui_role_required, stage_access_required, can_user_edit_stage
 from models import Project, Stage, Step, User, UserRole, Phase, Department, Location, Designation
 from secure_auth import login_required
+from email_notifications import (
+    send_stage_assignment_email,
+    send_stage_completion_email,
+    send_project_created_email,
+    is_email_enabled,
+)
 from unified_db import (
     get_all_users,
     get_all_users_with_details,
@@ -545,6 +551,12 @@ def create_project():
         db.session.commit()
         
         flash('Project created successfully with APQP structure and stage assignments!', 'success')
+        
+        if is_email_enabled():
+            head_user = User.query.get(proj.head_id) if proj.head_id else None
+            if head_user and head_user.email:
+                send_project_created_email(head_user.email, head_user.full_name, proj.name)
+        
         return redirect(url_for('ui.project_detail', project_id=proj.id))
     # Fetch users from unified database
     users_data = get_all_users()
@@ -831,6 +843,17 @@ def ui_update_stage(stage_id: int):
         stage.actual_end_date = date.today()
         stage.completed_by_id = session.get('user_id')
         flash('Stage marked as complete successfully.', 'success')
+        
+        if is_email_enabled():
+            project_head = User.query.get(stage.phase.project.head_id) if stage.phase.project.head_id else None
+            responsible_user = User.query.get(stage.responsible_user_id) if stage.responsible_user_id else None
+            recipients = []
+            if project_head and project_head.email:
+                recipients.append((project_head.email, project_head.full_name))
+            if responsible_user and responsible_user.email and responsible_user.id != (project_head.id if project_head else None):
+                recipients.append((responsible_user.email, responsible_user.full_name))
+            for email, name in recipients:
+                send_stage_completion_email(email, name, stage.name, stage.phase.project.name)
     elif status != 'completed' and stage.actual_end_date:
         stage.actual_end_date = None
         stage.completed_by_id = None

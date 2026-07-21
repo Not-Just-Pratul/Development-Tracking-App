@@ -6,6 +6,7 @@ from models import Project, Phase, Stage, Step, UserRole, User
 from datetime import date, timedelta, datetime, timezone
 from sqlalchemy import and_, case, or_
 from secure_auth import SecurityManager
+from email_notifications import is_email_enabled, send_stage_assignment_email
 import logging
 
 logger = logging.getLogger(__name__)
@@ -604,6 +605,17 @@ def create_stage(project_id: int):
     
     db.session.add(stage)
     db.session.commit()
+    
+    if is_email_enabled() and responsible_user_id:
+        responsible_user = User.query.get(responsible_user_id)
+        if responsible_user and responsible_user.email:
+            send_stage_assignment_email(
+                responsible_user.email,
+                responsible_user.full_name,
+                stage.name,
+                project.name,
+                expected_end_date,
+            )
     
     return jsonify(stage.to_dict()), 201
 

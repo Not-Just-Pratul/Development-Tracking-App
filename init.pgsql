@@ -71,17 +71,19 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================================
--- MIGRATION: Remove email and phone columns if they exist
+-- MIGRATION: Remove old columns if they exist
 -- ============================================================================
 -- Drop indexes first
 DROP INDEX IF EXISTS idx_users_email;
 
 -- Drop columns from existing tables (for database upgrades)
-ALTER TABLE IF EXISTS users DROP COLUMN IF EXISTS email;
 ALTER TABLE IF EXISTS users DROP COLUMN IF EXISTS phone;
 ALTER TABLE IF EXISTS companies DROP COLUMN IF EXISTS email;
 ALTER TABLE IF EXISTS companies DROP COLUMN IF EXISTS phone;
 ALTER TABLE IF EXISTS locations DROP COLUMN IF EXISTS phone;
+
+-- Ensure email column exists on users
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS email VARCHAR(120);
 
 -- Drop old columns from projects table if they exist
 ALTER TABLE IF EXISTS projects DROP COLUMN IF EXISTS location;
@@ -171,6 +173,7 @@ CREATE TABLE users (
     location_id INTEGER REFERENCES locations(id),
     employee_id VARCHAR(50),
     designation VARCHAR(100),
+    email VARCHAR(120),
     date_of_joining DATE,
     created_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_by INTEGER,
@@ -666,10 +669,10 @@ VALUES
 ON CONFLICT (designation_code) DO NOTHING;
 
 -- Admin User (password: admin123)
-INSERT INTO users (username, full_name, password_hash, role, is_super_admin, is_active, department_id, location_id, designation, employee_id)
+INSERT INTO users (username, full_name, password_hash, role, is_super_admin, is_active, department_id, location_id, designation, employee_id, email)
 VALUES ('admin', 'System Administrator', 
         '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
-        'admin', TRUE, TRUE, 1, 1, 'Administrator', 'EMP001')
+        'admin', TRUE, TRUE, 1, 1, 'Administrator', 'EMP001', 'admin@example.com')
 ON CONFLICT (username) DO NOTHING;
 
 -- Applications

@@ -374,6 +374,7 @@ class User(db.Model):
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
     employee_id = db.Column(db.String(50))
     designation = db.Column(db.String(100))
+    email = db.Column(db.String(120), nullable=True)
     date_of_joining = db.Column(db.Date)
     created_date = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     created_by = db.Column(db.Integer)

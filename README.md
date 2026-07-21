@@ -53,6 +53,27 @@ The setup script will:
 - Install Python packages (optional)
 - Show database setup instructions
 
+### Docker Setup (Fastest)
+
+If you have Docker and Docker Compose installed, you can run the entire stack with one command:
+
+```bash
+docker compose up --build
+```
+
+Then open `http://localhost:5003` and log in with `admin` / `admin123`.
+
+To stop:
+```bash
+docker compose down
+```
+
+To reset database data:
+```bash
+docker compose down -v
+docker compose up --build
+```
+
 ### Manual Installation Steps
 
 1. **Download/Clone the project**

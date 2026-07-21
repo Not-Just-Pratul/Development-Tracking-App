@@ -1,0 +1,20 @@
+.git
+.gitignore
+README.md
+__pycache__
+.venv
+venv
+.env
+config.ini
+uploads/*
+!uploads/.gitkeep
+!uploads/stage_attachments/.gitkeep
+!uploads/step_attachments/.gitkeep
+*.xlsx
+*.xls
+Copy of *.xlsx
+.vscode
+.idea
+*.log
+.DS_Store
+Thumbs.db
