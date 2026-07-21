@@ -171,7 +171,7 @@ class StepEditor {
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Estimated Completion</label>
-                                <input type="date" class="form-control" name="estimated_completion_date" 
+                                <input type="date" class="form-control" name="expected_end_date" 
                                        value="${estimatedDate}">
                             </div>
                         </div>

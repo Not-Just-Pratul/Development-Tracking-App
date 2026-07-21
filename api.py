@@ -38,6 +38,7 @@ def create_project():
     return jsonify(project.to_dict()), 201
 
 
+@jwt_required()
 @api.get('/projects/<int:project_id>')
 def get_project(project_id: int):
     project = db.session.get(Project, project_id)
@@ -154,6 +155,7 @@ def delete_step(step_id: int):
     return '', 204
 
 
+@jwt_required()
 @api.get('/stages/<int:stage_id>')
 def get_stage(stage_id: int):
     """Get a specific stage with its steps"""
@@ -261,6 +263,7 @@ def delete_stage(stage_id: int):
     return '', 204
 
 
+@jwt_required()
 @api.get('/projects')
 def list_projects():
     """List all projects with optional filtering and pagination"""
@@ -607,6 +610,7 @@ def create_stage(project_id: int):
 
 # ==================== ADDITIONAL PROJECT ENDPOINTS ====================
 
+@jwt_required()
 @api.get('/projects/summary')
 def projects_summary():
     """Get a quick summary of all projects"""
@@ -630,6 +634,7 @@ def projects_summary():
     })
 
 
+@jwt_required()
 @api.get('/projects/by-user/<int:user_id>')
 def get_projects_by_user(user_id: int):
     """Get all projects related to a user (as head or stage responsible)"""
@@ -658,6 +663,7 @@ def get_projects_by_user(user_id: int):
 
 
 # Dashboard endpoints (read-only)
+@jwt_required()
 @api.get('/dashboard/summary')
 def dashboard_summary():
     projects = Project.query.all()
@@ -702,6 +708,7 @@ def dashboard_summary():
     })
 
 
+@jwt_required()
 @api.get('/dashboard/overdue_stages')
 def dashboard_overdue_stages():
     q = Stage.query.filter(
@@ -713,6 +720,7 @@ def dashboard_overdue_stages():
     return jsonify([s.to_dict(include_children=False) for s in stages])
 
 
+@jwt_required()
 @api.get('/dashboard/upcoming_steps')
 def dashboard_upcoming_steps():
     days = int(request.args.get('days', 7))
@@ -726,6 +734,7 @@ def dashboard_upcoming_steps():
     return jsonify([s.to_dict() for s in steps])
 
 
+@jwt_required()
 @api.get('/dashboard/overdue_steps')
 def dashboard_overdue_steps():
     steps = Step.query.filter(
@@ -737,6 +746,7 @@ def dashboard_overdue_steps():
 
 
 # Enhanced Analytics Endpoints
+@jwt_required()
 @api.get('/dashboard/analytics/trends')
 def dashboard_trends():
     """Get trend analysis for project completion and performance metrics."""
@@ -800,6 +810,7 @@ def dashboard_trends():
     })
 
 
+@jwt_required()
 @api.get('/dashboard/analytics/user-performance')
 def dashboard_user_performance():
     """Get user performance metrics and productivity analysis."""
@@ -862,6 +873,7 @@ def dashboard_user_performance():
     })
 
 
+@jwt_required()
 @api.get('/dashboard/analytics/project-health')
 def dashboard_project_health():
     """Get comprehensive project health metrics and risk analysis."""
@@ -951,8 +963,9 @@ def dashboard_project_health():
 
 
 # Audit Logs Endpoints
-@api.get('/audit-logs')
+@jwt_required()
 @role_required(UserRole.ADMIN, UserRole.PROJECT_HEAD)
+@api.get('/audit-logs')
 def get_audit_logs():
     """Get audit logs with pagination and filtering from unified database"""
     try:
@@ -1103,8 +1116,9 @@ def get_audit_logs():
         return jsonify({'error': str(e)}), 500
 
 
-@api.get('/audit-logs/stats')
+@jwt_required()
 @role_required(UserRole.ADMIN, UserRole.PROJECT_HEAD)
+@api.get('/audit-logs/stats')
 def get_audit_logs_stats():
     """Get audit logs statistics from unified database"""
     try:
@@ -1144,8 +1158,9 @@ def get_audit_logs_stats():
         return jsonify({'error': str(e)}), 500
 
 
-@api.get('/audit-logs/export')
+@jwt_required()
 @role_required(UserRole.ADMIN, UserRole.PROJECT_HEAD)
+@api.get('/audit-logs/export')
 def export_audit_logs():
     """Export audit logs to CSV"""
     try:
@@ -1289,6 +1304,7 @@ def cleanup_audit_logs():
 
 
 # Settings API Endpoints - Users, Locations, Companies, Departments, Applications
+@jwt_required()
 @api.get('/users')
 def get_users():
     """Get all users from unified database with locations, companies, departments"""
@@ -1409,8 +1425,9 @@ def get_users():
         return jsonify({'error': str(e)}), 500
 
 
-@api.get('/settings/users/<int:user_id>')
+@jwt_required()
 @role_required(UserRole.ADMIN, UserRole.PROJECT_HEAD)
+@api.get('/settings/users/<int:user_id>')
 def get_settings_user(user_id):
     """Get single user details for settings"""
     try:
@@ -1728,6 +1745,7 @@ def delete_settings_user(user_id):
         return jsonify({'error': str(e)}), 500
 
 
+@jwt_required()
 @api.get('/locations')
 def get_locations():
     """Get all locations from unified database"""
@@ -1926,6 +1944,7 @@ def delete_location(location_id):
         return jsonify({'error': str(e)}), 500
 
 
+@jwt_required()
 @api.get('/companies')
 def get_companies():
     """Get all companies from unified database"""
@@ -2112,6 +2131,7 @@ def delete_company(company_id):
         return jsonify({'error': str(e)}), 500
 
 
+@jwt_required()
 @api.get('/departments')
 def get_departments():
     """Get all departments from unified database with user counts"""
@@ -2325,6 +2345,7 @@ def delete_department(department_id):
         return jsonify({'error': error_msg}), 500
 
 
+@jwt_required()
 @api.get('/applications')
 def get_applications():
     """Get all applications from unified database"""
@@ -2365,6 +2386,7 @@ def get_applications():
         return jsonify({'error': str(e)}), 500
 
 
+@jwt_required()
 @api.get('/applications/<int:app_id>/size')
 def get_application_size(app_id):
     """Get application size"""
@@ -2384,6 +2406,7 @@ def toggle_application(app_id):
 
 # ==================== DESIGNATION MANAGEMENT ENDPOINTS ====================
 
+@jwt_required()
 @api.get('/designations')
 def get_designations():
     """Get all designations"""
@@ -2537,6 +2560,7 @@ def delete_designation(designation_id):
 
 # ==================== DEPARTMENTS AND DESIGNATIONS ====================
 
+@jwt_required()
 @api.get('/hardcoded/departments')
 def get_hardcoded_departments():
     """Get departments list from database (for backward compatibility)"""
@@ -2566,6 +2590,7 @@ def get_hardcoded_departments():
         return jsonify({'error': str(e)}), 500
 
 
+@jwt_required()
 @api.get('/hardcoded/designations')
 def get_hardcoded_designations():
     """Get designations list from database"""
@@ -2577,6 +2602,7 @@ def get_hardcoded_designations():
     ]})
 
 
+@jwt_required()
 @api.get('/templates')
 def get_templates():
     """Get all available project templates"""
@@ -2596,6 +2622,7 @@ def get_templates():
     })
 
 
+@jwt_required()
 @api.get('/template-structure')
 def get_template_structure():
     """Get the template phase and stage structure from the database"""

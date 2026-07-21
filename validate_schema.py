@@ -58,12 +58,12 @@ def validate_model(cursor, model, table_name=None):
     # Check for columns in model but not in database
     for col_name in model_columns:
         if col_name not in db_columns:
-            errors.append(f"  ❌ Column '{col_name}' exists in model but NOT in database table")
+            errors.append(f"  [ERROR] Column '{col_name}' exists in model but NOT in database table")
     
     # Check for columns in database but not in model
     for col_name in db_columns:
         if col_name not in model_columns:
-            warnings.append(f"  ⚠️  Column '{col_name}' exists in database but NOT in model")
+            warnings.append(f"  [WARN] Column '{col_name}' exists in database but NOT in model")
     
     if errors:
         print("  ERRORS:")
@@ -76,7 +76,7 @@ def validate_model(cursor, model, table_name=None):
             print(warning)
     
     if not errors and not warnings:
-        print("  ✅ Schema matches perfectly!")
+        print("  [OK] Schema matches perfectly!")
     
     return len(errors) == 0
 
@@ -92,9 +92,9 @@ def main():
         config = Config()
         conn = psycopg2.connect(config.SQLALCHEMY_DATABASE_URI)
         cursor = conn.cursor()
-        print(f"✅ Connected to database: {config.SQLALCHEMY_DATABASE_URI.split('@')[1]}")
+        print(f"[OK] Connected to database: {config.SQLALCHEMY_DATABASE_URI.split('@')[1]}")
     except Exception as e:
-        print(f"❌ Failed to connect to database: {e}")
+        print(f"[ERROR] Failed to connect to database: {e}")
         return False
     
     # Validate all models
@@ -120,11 +120,11 @@ def main():
     
     print("\n" + "=" * 70)
     if all_valid:
-        print("✅ ALL MODELS VALIDATED SUCCESSFULLY!")
+        print("[OK] ALL MODELS VALIDATED SUCCESSFULLY!")
         print("=" * 70)
         return True
     else:
-        print("❌ VALIDATION FAILED - Please fix schema mismatches above")
+        print("[ERROR] VALIDATION FAILED - Please fix schema mismatches above")
         print("=" * 70)
         return False
 

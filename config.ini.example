@@ -1,0 +1,26 @@
+[DATABASE]
+# PostgreSQL connection settings - Update these for your environment
+HOST = localhost
+PORT = 5432
+DBNAME = development_tracking
+USER = postgres
+PASSWORD = your_password_here
+MIN_CONNECTIONS = 10
+MAX_CONNECTIONS = 150
+CONNECTION_TIMEOUT = 60
+
+[FLASK]
+# Flask application settings
+# IMPORTANT: Change SECRET_KEY to a random string in production
+SECRET_KEY = change_this_to_a_random_string_in_production
+DEBUG = False
+HOST = 0.0.0.0
+PORT = 5003
+
+[SECURITY]
+SESSION_TIMEOUT_MINUTES = 0
+MAX_LOGIN_ATTEMPTS = 0
+ENABLE_AUDIT_LOGS = True
+
+[SCHEMA]
+VERSION = 1

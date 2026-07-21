@@ -137,9 +137,7 @@ def dashboard():
                 completion_rate = (stats.completed_stages / stats.total_stages * 100) if stats.total_stages > 0 else 0
                 
                 # Get user role
-                user_role = 'User'
-                if hasattr(user, 'roles') and user.roles:
-                    user_role = user.roles[0].role.value if hasattr(user.roles[0], 'role') else 'User'
+                user_role = user.role if hasattr(user, 'role') and user.role else 'User'
                 
                 user_performance.append({
                     'user_id': user.id,
@@ -927,13 +925,13 @@ def ui_update_step(step_id: int):
             flash('Invalid start date format. Use YYYY-MM-DD.', 'error')
             return redirect(url_for('ui.project_detail', project_id=step.stage.project_id))
     
-    # Update estimated completion date
-    estimated_date_str = request.form.get('estimated_completion_date', '').strip()
-    if estimated_date_str:
+    # Update expected end date
+    expected_end_date_str = request.form.get('expected_end_date', '').strip()
+    if expected_end_date_str:
         try:
-            step.estimated_completion_date = date.fromisoformat(estimated_date_str)
+            step.expected_end_date = date.fromisoformat(expected_end_date_str)
         except ValueError:
-            flash('Invalid estimated completion date format. Use YYYY-MM-DD.', 'error')
+            flash('Invalid expected end date format. Use YYYY-MM-DD.', 'error')
             return redirect(url_for('ui.project_detail', project_id=step.stage.project_id))
     
     # Update status if provided

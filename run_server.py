@@ -45,11 +45,11 @@ if __name__ == '__main__':
     print("=" * 60)
     
     # Quick schema validation check
-    print("\n🔍 Checking database schema consistency...")
+    print("\n[CHECK] Checking database schema consistency...")
     try:
         from validate_schema import main as validate_schema
         if not validate_schema():
-            print("\n⚠️  WARNING: Schema validation failed!")
+            print("\n[WARN] WARNING: Schema validation failed!")
             print("    The app may encounter runtime errors.")
             print("    Run 'python validate_schema.py' for details.")
             response = input("\n    Continue anyway? (y/N): ")
@@ -57,10 +57,10 @@ if __name__ == '__main__':
                 print("Startup cancelled.")
                 sys.exit(1)
     except Exception as e:
-        print(f"⚠️  Could not validate schema: {e}")
+        print(f"[WARN] Could not validate schema: {e}")
         print("   Continuing without validation...")
     
-    print(f"\n✅ Server configuration:")
+    print(f"\n[OK] Server configuration:")
     print(f"  - Local:   http://127.0.0.1:{flask_port}")
     print(f"  - Network: http://localhost:{flask_port}")
     print(f"\nPress CTRL+C to quit")

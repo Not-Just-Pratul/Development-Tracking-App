@@ -84,7 +84,7 @@
                             <td>{{ loop.index }}</td>
                             <td>{{ st.name }}</td>
                             <td>{{ st.start_date.strftime('%d/%m/%Y') if st.start_date else '-' }}</td>
-                            <td>{{ st.estimated_completion_date.strftime('%d/%m/%Y') if st.estimated_completion_date else '-' }}</td>
+                            <td>{{ st.expected_end_date.strftime('%d/%m/%Y') if st.expected_end_date else '-' }}</td>
                             <td><span class="badge bg-{{ 'success' if st.status == 'completed' else 'secondary' }}">{{ st.status }}</span></td>
                             <td>
                                 <form method="post" action="/ui/steps/{{ st.id }}/status" class="d-inline" data-confirm="Are you sure you want to mark this step as complete?">
@@ -116,7 +116,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label small">Est. Completion</label>
-                        <input class="form-control" type="date" name="estimated_completion_date">
+                        <input class="form-control" type="date" name="expected_end_date">
                     </div>
                     <div class="col-md-2">
                         <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg"></i> Add</button>
