@@ -1475,6 +1475,9 @@ async function openUserModal(userId = null) {
     if (allDepartments.length === 0) {
         await loadDepartments();
     }
+    if (!window.allDesignations || !Array.isArray(window.allDesignations) || window.allDesignations.length === 0) {
+        await loadDesignationsData();
+    }
     if (allApplications.length === 0) {
         await loadApplications();
     }
@@ -1616,6 +1619,59 @@ async function openUserModal(userId = null) {
                 </div>
             </div>
             
+            <!-- Row: Email, Employee ID, Designation, Department, Date of Joining -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        Email
+                    </label>
+                    <input type="email" name="email" 
+                           value="${user ? escapeHtml(user.email || '') : ''}"
+                           style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;"
+                           placeholder="Enter email address">
+                </div>
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        Employee ID
+                    </label>
+                    <input type="text" name="employee_id" 
+                           value="${user ? escapeHtml(user.employee_id || '') : ''}"
+                           style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;"
+                           placeholder="Enter employee ID">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        Designation
+                    </label>
+                    <select name="designation" 
+                            style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                        <option value="">Select designation</option>
+                        ${(window.allDesignations || []).map(d => `<option value="${escapeHtml(d.designation_name)}" ${user && user.designation === d.designation_name ? 'selected' : ''}>${escapeHtml(d.designation_name)}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        Primary Department
+                    </label>
+                    <select name="department_id" 
+                            style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                        <option value="">Select department</option>
+                        ${allDepartments.map(d => `<option value="${d.id}" ${user && user.department_id === d.id ? 'selected' : ''}>${escapeHtml(d.department_name)}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 14px; display: block;">
+                        Date of Joining
+                    </label>
+                    <input type="date" name="date_of_joining" 
+                           value="${user ? escapeHtml(user.date_of_joining || '') : ''}"
+                           style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;">
+                </div>
+            </div>
+            
             <!-- Row: Locations and Companies side by side -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                 <!-- Locations -->
@@ -1738,6 +1794,11 @@ async function saveUser(event, userId = null) {
         username: formData.get('username')?.trim(),
         role: formData.get('role')?.trim() || 'user',
         full_name: formData.get('full_name')?.trim() || '',
+        email: formData.get('email')?.trim() || '',
+        employee_id: formData.get('employee_id')?.trim() || '',
+        designation: formData.get('designation')?.trim() || '',
+        department_id: formData.get('department_id') ? parseInt(formData.get('department_id'), 10) : null,
+        date_of_joining: formData.get('date_of_joining')?.trim() || '',
         locations: locations,
         companies: companies,
         departments: departments,

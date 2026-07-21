@@ -1476,7 +1476,7 @@ def get_settings_user(user_id):
             
             # Get user basic info
             cur.execute("""
-                SELECT id, username, full_name, role, is_active, is_super_admin
+                SELECT id, username, full_name, role, is_active, is_super_admin, email, employee_id, designation, department_id, date_of_joining
                 FROM users WHERE id = %s
             """, (user_id,))
             
@@ -1491,6 +1491,11 @@ def get_settings_user(user_id):
                 'role': row[3],
                 'is_active': row[4],
                 'is_super_admin': row[5],
+                'email': row[6] or '',
+                'employee_id': row[7] or '',
+                'designation': row[8] or '',
+                'department_id': row[9],
+                'date_of_joining': row[10].isoformat() if row[10] else '',
                 'locations': [],
                 'companies': [],
                 'departments': [],
@@ -1553,6 +1558,11 @@ def create_settings_user():
         password = data.get('password', '').strip()
         full_name = data.get('full_name', '').strip()
         role = data.get('role', 'user').strip().lower()
+        email = data.get('email', '').strip() or None
+        employee_id = data.get('employee_id', '').strip() or None
+        designation = data.get('designation', '').strip() or None
+        department_id = data.get('department_id')
+        date_of_joining = data.get('date_of_joining', '').strip() or None
         locations = data.get('locations', [])
         companies = data.get('companies', [])
         departments = data.get('departments', [])
@@ -1579,10 +1589,10 @@ def create_settings_user():
             
             try:
                 cur.execute("""
-                    INSERT INTO users (username, password_hash, full_name, role, is_active, created_by)
-                    VALUES (%s, %s, %s, %s, TRUE, %s)
+                    INSERT INTO users (username, password_hash, full_name, role, is_active, created_by, email, employee_id, designation, department_id, date_of_joining)
+                    VALUES (%s, %s, %s, %s, TRUE, %s, %s, %s, %s, %s, %s)
                     RETURNING id
-                """, (username, password_hash, full_name, role, created_by))
+                """, (username, password_hash, full_name, role, created_by, email, employee_id, designation, department_id, date_of_joining))
                 
                 user_id = cur.fetchone()[0]
             except pg8000.exceptions.DatabaseError as db_err:
@@ -1678,6 +1688,26 @@ def update_settings_user(user_id):
             if 'password' in data and data['password'].strip():
                 update_fields.append('password_hash = %s')
                 params.append(SecurityManager.hash_password(data['password'].strip()))
+            
+            if 'email' in data:
+                update_fields.append('email = %s')
+                params.append(data['email'].strip() or None)
+            
+            if 'employee_id' in data:
+                update_fields.append('employee_id = %s')
+                params.append(data['employee_id'].strip() or None)
+            
+            if 'designation' in data:
+                update_fields.append('designation = %s')
+                params.append(data['designation'].strip() or None)
+            
+            if 'department_id' in data:
+                update_fields.append('department_id = %s')
+                params.append(data['department_id'])
+            
+            if 'date_of_joining' in data:
+                update_fields.append('date_of_joining = %s')
+                params.append(data['date_of_joining'].strip() or None)
             
             if update_fields:
                 claims = get_jwt()
