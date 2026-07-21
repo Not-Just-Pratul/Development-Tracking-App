@@ -42,10 +42,14 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = False  # Disable query recording in production
     
     # Detect serverless/cloud databases and adjust pool settings
-    db_url = SQLALCHEMY_DATABASE_URI or ''
-    is_serverless = any(keyword in db_url for keyword in ['neon', 'supabase', 'railway', 'render', 'pooler'])
+    _db_url = SQLALCHEMY_DATABASE_URI or ''
+    _is_serverless = False
+    for _keyword in ['neon', 'supabase', 'railway', 'render', 'pooler']:
+        if _keyword in _db_url:
+            _is_serverless = True
+            break
     
-    if is_serverless:
+    if _is_serverless:
         pool_size = 5
         max_overflow = 10
         pool_recycle = 300
