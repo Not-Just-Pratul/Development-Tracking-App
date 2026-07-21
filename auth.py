@@ -110,6 +110,18 @@ def login():
             except Exception:
                 pass
             
+            # Create session for browser requests so UI pages work
+            session.clear()
+            session['user_id'] = user_id
+            session['username'] = username
+            session['full_name'] = full_name
+            session['role'] = local_role
+            session['unified_role'] = local_role
+            session['is_super_admin'] = is_super_admin
+            session['user_name'] = full_name
+            session['jwt_token'] = access_token
+            session.modified = True
+            
             return jsonify({
                 'access_token': access_token,
                 'refresh_token': refresh_token,
@@ -159,13 +171,25 @@ def login():
     except Exception:
         pass
     
+    # Create session for browser requests so UI pages work
+    session.clear()
+    session['user_id'] = user.id
+    session['username'] = user.username
+    session['full_name'] = user.full_name
+    session['role'] = user.role
+    session['unified_role'] = user.role
+    session['is_super_admin'] = False
+    session['user_name'] = user.full_name
+    session['jwt_token'] = access_token
+    session.modified = True
+    
     return jsonify({
         'access_token': access_token,
         'refresh_token': refresh_token,
         'user': {
             'id': user.id,
             'username': user.username,
-            'name': user.full_name,
+            'full_name': user.full_name,
             'role': user.role,
             'is_super_admin': False
         }
