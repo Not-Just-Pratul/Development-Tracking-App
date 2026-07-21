@@ -69,10 +69,15 @@ class Config:
             'isolation_level': 'READ COMMITTED'
         },
         'connect_args': {
-            'connect_timeout': 10,
-            'options': '-c statement_timeout=30000 -c lock_timeout=30000'
+            'connect_timeout': 10
         }
     }
+    
+    # Apply database-specific tuning after base engine options are built
+    if _is_serverless:
+        SQLALCHEMY_ENGINE_OPTIONS['pool_size'] = 5
+        SQLALCHEMY_ENGINE_OPTIONS['max_overflow'] = 10
+        SQLALCHEMY_ENGINE_OPTIONS['pool_recycle'] = 300
     
     JWT_SECRET_KEY = os.getenv('SECRET_KEY', SECRET_KEY)
     JWT_TOKEN_LOCATION = ['headers']  # Only look for JWT in headers, not cookies
