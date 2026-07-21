@@ -83,11 +83,16 @@ def create_app():
         except Exception:
             pass
         
-        from werkzeug.exceptions import NotFound
+        from werkzeug.exceptions import NotFound, HTTPException
         from flask import request
+        
         if isinstance(e, NotFound):
             if '.well-known' in request.path or 'devtools' in request.path.lower():
                 return '', 404
+            return jsonify({'error': 'Not found'}), 404
+        
+        if isinstance(e, HTTPException):
+            return jsonify({'error': e.description}), e.code
         
         logger.error("Unhandled exception: %s", e, exc_info=True)
         return jsonify({'error': 'Internal server error'}), 500
@@ -152,6 +157,15 @@ def create_app():
     @app.get('/health')
     def health():
         return {'status': 'ok'}, 200
+
+    @app.route('/api/docs')
+    def api_docs():
+        return redirect('https://petstore.swagger.io/?url=http://localhost:5003/static/swagger.json')
+
+    @app.route('/api/openapi.json')
+    def openapi_spec():
+        from flask import send_from_directory
+        return send_from_directory('static', 'swagger.json')
 
     @app.route('/favicon.ico')
     def favicon():

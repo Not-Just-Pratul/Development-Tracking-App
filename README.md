@@ -15,13 +15,25 @@ This application is **100% portable** and works on any computer:
 
 **Just copy the entire folder to any computer, configure database settings, and run!**
 
-## Features
+## Tech Stack
 
-- **APQP Workflow**: 5 phases, 50 stages with automatic scheduling
+- **Backend**: Flask 3.1, SQLAlchemy 2.0, Flask-JWT-Extended
+- **Database**: PostgreSQL with Alembic migrations
+- **Frontend**: Bootstrap 5, Jinja2 templates
+- **DevOps**: Docker Compose, GitHub Actions ready
+- **Integrations**: SMTP email, PDF/Excel reporting
+
+## Key Features
+
+- **APQP Workflow**: 5 phases, 50+ stages with automatic scheduling
 - **Department Management**: Auto-assign stages to NPD, QA, and COST departments  
 - **Multi-Organization**: Companies, locations, and departments hierarchy
-- **Access Control**: Role-based permissions with audit logging
+- **Access Control**: Role-based permissions (Admin, Project Head, Stage Owner, User) with audit logging
 - **Real-time Tracking**: Project progress and status monitoring
+- **Email Notifications**: Automated alerts for stage assignments, overdue stages, and project updates
+- **Reporting**: Export projects and stages to PDF/Excel
+- **Dashboard Analytics**: User performance, project health, overdue tracking
+- **REST API**: Full JSON API with JWT authentication
 
 ## Quick Start
 
@@ -270,6 +282,29 @@ python validate_schema.py
 # Change port in config.ini
 PORT = 5004
 ```
+
+## Testing
+
+Run the test suite with pytest:
+
+```bash
+# Activate virtual environment first
+.\.venv\Scripts\Activate.ps1  # Windows
+source .venv/bin/activate     # Linux/Mac
+
+# Run all tests
+pytest tests/ -v
+
+# Run with coverage report
+pytest tests/ --cov=. --cov-report=html
+```
+
+The test suite covers:
+- Authentication & authorization (login, JWT enforcement)
+- Project/Stage/Step CRUD operations
+- Dashboard analytics endpoints
+- Email notification mocking
+- Bug fix regression tests
 
 ## Security Checklist
 

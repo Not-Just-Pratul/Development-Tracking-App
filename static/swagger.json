@@ -1,0 +1,290 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Development Tracking System API",
+    "version": "1.0.0",
+    "description": "REST API for APQP project management with role-based access control"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5003",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service is healthy"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login with username and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {"type": "string"},
+                  "password": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, returns JWT token"
+          }
+        }
+      }
+    },
+    "/api/projects": {
+      "get": {
+        "summary": "List all projects",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "List of projects"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new project",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "head_id": {"type": "integer"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created"
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}": {
+      "get": {
+        "summary": "Get project details",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details with phases and stages"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update project",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete project",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project deleted"
+          }
+        }
+      }
+    },
+    "/api/projects/{project_id}/stages": {
+      "post": {
+        "summary": "Create a stage in a project",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"},
+                  "responsible_user_id": {"type": "integer"},
+                  "expected_end_date": {"type": "string", "format": "date"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Stage created"
+          }
+        }
+      }
+    },
+    "/api/stages/{stage_id}/steps": {
+      "post": {
+        "summary": "Create a step in a stage",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "stage_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Step created"
+          }
+        }
+      }
+    },
+    "/api/steps/{step_id}": {
+      "patch": {
+        "summary": "Update a step",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "step_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {"type": "string"},
+                  "expected_end_date": {"type": "string", "format": "date"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Step updated"
+          }
+        }
+      }
+    },
+    "/api/dashboard/summary": {
+      "get": {
+        "summary": "Get dashboard summary",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Dashboard summary data"
+          }
+        }
+      }
+    },
+    "/api/dashboard/analytics/project-health": {
+      "get": {
+        "summary": "Get project health analytics",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Project health metrics"
+          }
+        }
+      }
+    },
+    "/api/dashboard/analytics/user-performance": {
+      "get": {
+        "summary": "Get user performance analytics",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "User performance metrics"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
