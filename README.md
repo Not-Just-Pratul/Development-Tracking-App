@@ -35,6 +35,13 @@ This application is **100% portable** and works on any computer:
 - **Dashboard Analytics**: User performance, project health, overdue tracking
 - **REST API**: Full JSON API with JWT authentication
 
+## 🌐 Live Demo
+
+Try the application online:  
+**https://development-tracking-app-production.up.railway.app**
+
+Default login: `admin` / `admin123`
+
 ## Quick Start
 
 ### Prerequisites
@@ -298,13 +305,8 @@ chmod 755 uploads/  # Linux/Mac only
 - Use strong PostgreSQL passwords
 - Enable SSL/HTTPS in production environments
 - Keep config.ini private (it's in .gitignore)
-````
-python validate_schema.py
-```
 
-**Port in use**
-```ini
-# Change port in config.ini
+## Validation
 PORT = 5004
 ```
 
