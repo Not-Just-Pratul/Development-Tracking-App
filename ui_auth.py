@@ -91,20 +91,20 @@ def login():
             
             user_id, username, password_hash, full_name, role, is_super_admin, is_active = user
             logger.info(f"User found via {user_source}: ID={user_id}, Active={is_active}")
-                
-                # Check if user is active
-                if not is_active:
-                    logger.warning(f"Login failed: Account disabled - {username}")
-                    record_login_event(user_id, 'LOGIN_FAILED', 'Account disabled', False)
-                    flash('Your account has been disabled. Please contact an administrator.', 'error')
-                    return render_template('login.html')
-                
-                # Verify password
-                password_match = SecurityManager.verify_password(password, password_hash)
-                logger.info(f"Password verification: {password_match}")
-                if not password_match:
-                    logger.warning(f"Login failed: Invalid password - {username}")
-                    record_login_event(user_id, 'LOGIN_FAILED', 'Invalid password', False)
+            
+            # Check if user is active
+            if not is_active:
+                logger.warning(f"Login failed: Account disabled - {username}")
+                record_login_event(user_id, 'LOGIN_FAILED', 'Account disabled', False)
+                flash('Your account has been disabled. Please contact an administrator.', 'error')
+                return render_template('login.html')
+            
+            # Verify password
+            password_match = SecurityManager.verify_password(password, password_hash)
+            logger.info(f"Password verification: {password_match}")
+            if not password_match:
+                logger.warning(f"Login failed: Invalid password - {username}")
+                record_login_event(user_id, 'LOGIN_FAILED', 'Invalid password', False)
                     flash('Invalid username or password', 'error')
                     return render_template('login.html')
                 
