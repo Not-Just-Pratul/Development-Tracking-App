@@ -105,53 +105,53 @@ def login():
             if not password_match:
                 logger.warning(f"Login failed: Invalid password - {username}")
                 record_login_event(user_id, 'LOGIN_FAILED', 'Invalid password', False)
-                    flash('Invalid username or password', 'error')
-                    return render_template('login.html')
-                
-                # Update last login
-                cur.execute("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s", (user_id,))
-                conn.commit()
-                
-                # Create JWT token for API calls
-                jwt_claims = {
-                    'user_id': user_id,
-                    'username': username,
-                    'role': role,
-                    'unified_role': role,
-                    'is_super_admin': is_super_admin
-                }
-                access_token = create_access_token(
-                    identity=username,
-                    additional_claims=jwt_claims,
-                    expires_delta=timedelta(hours=24)
-                )
-                
-                # Create session
-                session.clear()
-                session['user_id'] = user_id
-                session['username'] = username
-                session['full_name'] = full_name
-                session['role'] = role
-                session['unified_role'] = role  # Store unified role for authz checks
-                session['is_super_admin'] = is_super_admin
-                session['user_name'] = full_name  # For backward compatibility
-                session['jwt_token'] = access_token  # Store JWT token for API calls
-                
-                if request.form.get('remember_me') == '1':
-                    session.permanent = True
-                else:
-                    session.permanent = False
-                
-                # Force session save
-                session.modified = True
-                
-                logger.info(f"Session created for user {username} (ID: {user_id})")
-                
-                # Log successful login
-                logger.info(f"Login successful: {username}")
-                record_login_event(user_id, 'LOGIN_SUCCESS', f'UI login successful - Role: {role}', True)
-                
-                return redirect(url_for('ui.dashboard'))
+                flash('Invalid username or password', 'error')
+                return render_template('login.html')
+            
+            # Update last login
+            cur.execute("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s", (user_id,))
+            conn.commit()
+            
+            # Create JWT token for API calls
+            jwt_claims = {
+                'user_id': user_id,
+                'username': username,
+                'role': role,
+                'unified_role': role,
+                'is_super_admin': is_super_admin
+            }
+            access_token = create_access_token(
+                identity=username,
+                additional_claims=jwt_claims,
+                expires_delta=timedelta(hours=24)
+            )
+            
+            # Create session
+            session.clear()
+            session['user_id'] = user_id
+            session['username'] = username
+            session['full_name'] = full_name
+            session['role'] = role
+            session['unified_role'] = role  # Store unified role for authz checks
+            session['is_super_admin'] = is_super_admin
+            session['user_name'] = full_name  # For backward compatibility
+            session['jwt_token'] = access_token  # Store JWT token for API calls
+            
+            if request.form.get('remember_me') == '1':
+                session.permanent = True
+            else:
+                session.permanent = False
+            
+            # Force session save
+            session.modified = True
+            
+            logger.info(f"Session created for user {username} (ID: {user_id})")
+            
+            # Log successful login
+            logger.info(f"Login successful: {username}")
+            record_login_event(user_id, 'LOGIN_SUCCESS', f'UI login successful - Role: {role}', True)
+            
+            return redirect(url_for('ui.dashboard'))
                 
         except Exception as e:
             logger.error(f"Login error: {e}", exc_info=True)

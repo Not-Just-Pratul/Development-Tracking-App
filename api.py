@@ -378,7 +378,7 @@ def create_user():
         return make_response(jsonify({'error': 'Invalid JSON payload'}), 400)
     
     # Validate required fields
-    username = payload.get('username', '').strip()
+    username = payload.get('username', '').strip().lower()
     name = payload.get('name', '').strip()
     password = payload.get('password', '').strip()
     role = payload.get('role', UserRole.TEAM_MEMBER)
@@ -1549,10 +1549,10 @@ def create_settings_user():
         
         data = request.get_json()
         
-        username = data.get('username', '').strip()
+        username = data.get('username', '').strip().lower()
         password = data.get('password', '').strip()
         full_name = data.get('full_name', '').strip()
-        role = data.get('role', 'user').strip()
+        role = data.get('role', 'user').strip().lower()
         locations = data.get('locations', [])
         companies = data.get('companies', [])
         departments = data.get('departments', [])

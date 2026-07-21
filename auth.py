@@ -21,12 +21,12 @@ def register():
     if not all(k in payload and payload[k] for k in required):
         abort(400, description='username, name, password are required')
 
-    if User.query.filter_by(username=payload['username']).first():
+    if User.query.filter_by(username=payload['username'].lower()).first():
         abort(409, description='username already exists')
 
     # Security: Only allow team_member role for public registration
     user = User(
-        username=payload['username'],
+        username=payload['username'].lower(),
         full_name=payload['name'],
         role=UserRole.TEAM_MEMBER,
         password_hash=SecurityManager.hash_password(payload['password'])
@@ -41,8 +41,8 @@ def register():
 def login():
     """Login endpoint supporting both local and unified authentication"""
     payload = request.get_json(force=True) or {}
-    username = payload.get('username')
-    password = payload.get('password')
+    username = (payload.get('username') or '').strip().lower()
+    password = payload.get('password') or ''
     
     if not username or not password:
         return make_response(jsonify({'error': 'username and password are required'}), 400)
