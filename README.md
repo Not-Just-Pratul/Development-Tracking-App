@@ -86,7 +86,32 @@ docker compose down -v
 docker compose up --build
 ```
 
-### Manual Installation Steps
+#### Neon DB (Serverless PostgreSQL)
+
+[Neon](https://neon.tech) provides serverless PostgreSQL with automatic scaling.
+
+1. **Create a Neon project** and get your connection string:
+   ```
+   postgresql://user:password@host/dbname?sslmode=require
+   ```
+
+2. **Set the `DATABASE_URL` environment variable**:
+   - In Railway/Render/Docker: add `DATABASE_URL` in service variables
+   - Locally: add to `.env` file or set in config.ini:
+     ```ini
+     [DATABASE]
+     DATABASE_URL = postgresql://user:password@host/dbname?sslmode=require
+     ```
+
+3. **Initialize the database**:
+   ```bash
+   # Using Neon's SQL Editor in the dashboard, or:
+   psql $DATABASE_URL -f init.pgsql
+   ```
+
+4. **Deploy** with your normal deployment flow.
+
+## Manual Installation Steps
 
 1. **Download/Clone the project**
    - Extract or clone the project to any folder on your computer

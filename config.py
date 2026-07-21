@@ -41,20 +41,32 @@ class Config:
     # Performance optimization settings
     SQLALCHEMY_RECORD_QUERIES = False  # Disable query recording in production
     
-    # Connection pool settings to prevent timeout errors
+    # Detect serverless/cloud databases and adjust pool settings
+    db_url = SQLALCHEMY_DATABASE_URI or ''
+    is_serverless = any(keyword in db_url for keyword in ['neon', 'supabase', 'railway', 'render', 'pooler'])
+    
+    if is_serverless:
+        pool_size = 5
+        max_overflow = 10
+        pool_recycle = 300
+    else:
+        pool_size = 20
+        max_overflow = 40
+        pool_recycle = 600
+    
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 50,              # Maximum number of connections to keep open (increased)
-        'max_overflow': 100,          # Maximum overflow connections beyond pool_size (increased)
-        'pool_timeout': 60,           # Seconds to wait before giving up on getting a connection
-        'pool_recycle': 600,          # Recycle connections after 10 minutes (more aggressive)
-        'pool_pre_ping': True,        # Verify connections before using them
-        'echo_pool': False,           # Set to True for debugging pool issues
+        'pool_size': pool_size,
+        'max_overflow': max_overflow,
+        'pool_timeout': 30,
+        'pool_recycle': pool_recycle,
+        'pool_pre_ping': True,
+        'echo_pool': False,
         'execution_options': {
-            'isolation_level': 'READ COMMITTED'  # Faster than default SERIALIZABLE
+            'isolation_level': 'READ COMMITTED'
         },
         'connect_args': {
-            'connect_timeout': 10,    # Connection timeout
-            'options': '-c statement_timeout=30000 -c lock_timeout=30000'  # 30 second statement/lock timeout
+            'connect_timeout': 10,
+            'options': '-c statement_timeout=30000 -c lock_timeout=30000'
         }
     }
     

@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Use this if you want a local PostgreSQL database
   db:
     image: postgres:16-alpine
     restart: always
@@ -25,17 +26,20 @@ services:
     ports:
       - "5003:5003"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/development_tracking
+      # For local DB, use the connection below:
+      # - DATABASE_URL=postgresql://postgres:postgres@db:5432/development_tracking
+      
+      # For cloud databases (Neon, Railway, Supabase, etc.), 
+      # set DATABASE_URL in your hosting platform's environment variables
       - SECRET_KEY=change_this_in_production
     volumes:
       - ./uploads:/app/uploads
-    depends_on:
-      db:
-        condition: service_healthy
+    # Uncomment below if using local db service:
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
     command: >
       sh -c "
-        echo 'Waiting for database...' &&
-        sleep 5 &&
         python run_server.py
       "
 

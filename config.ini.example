@@ -1,13 +1,19 @@
 [DATABASE]
 # PostgreSQL connection settings - Update these for your environment
-HOST = localhost
-PORT = 5432
-DBNAME = development_tracking
-USER = postgres
-PASSWORD = your_password_here
-MIN_CONNECTIONS = 10
-MAX_CONNECTIONS = 150
-CONNECTION_TIMEOUT = 60
+# Option 1: Use individual connection parameters (local PostgreSQL)
+# HOST = localhost
+# PORT = 5432
+# DBNAME = development_tracking
+# USER = postgres
+# PASSWORD = your_password_here
+
+# Option 2: Use full DATABASE_URL (for cloud providers like Neon, Railway, Supabase)
+# DATABASE_URL = postgresql://user:password@host:port/dbname?sslmode=require
+
+# Connection pool settings
+MIN_CONNECTIONS = 5
+MAX_CONNECTIONS = 20
+CONNECTION_TIMEOUT = 30
 
 [FLASK]
 # Flask application settings
