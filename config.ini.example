@@ -1,11 +1,11 @@
 [DATABASE]
 # PostgreSQL connection settings - Update these for your environment
 # Option 1: Use individual connection parameters (local PostgreSQL)
-# HOST = localhost
-# PORT = 5432
-# DBNAME = development_tracking
-# USER = postgres
-# PASSWORD = your_password_here
+HOST = localhost
+PORT = 5432
+DBNAME = development_tracking
+USER = postgres
+PASSWORD = your_password_here
 
 # Option 2: Use full DATABASE_URL (for cloud providers like Neon, Railway, Supabase)
 # DATABASE_URL = postgresql://user:password@host:port/dbname?sslmode=require
