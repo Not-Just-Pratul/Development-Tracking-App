@@ -595,11 +595,18 @@ def create_stage(project_id: int):
             return make_response(jsonify({'error': 'Invalid expected_end_date format, use YYYY-MM-DD'}), 400)
     
     # Create stage - automatically started with today's date (ignoring any user-provided start_date)
-    stage = Stage(  # type: ignore[call-arg]
-        project_id=project_id,
+    phase_id = payload.get('phase_id')
+    if not phase_id:
+        first_phase = Phase.query.filter_by(project_id=project_id).order_by(Phase.serial_number).first()
+        if not first_phase:
+            return make_response(jsonify({'error': 'Project has no phases. Create a phase first.'}), 400)
+        phase_id = first_phase.id
+    
+    stage = Stage(
+        phase_id=phase_id,
         name=name,
         responsible_user_id=responsible_user_id,
-        start_date=date.today(),  # Automatically start the stage immediately
+        start_date=date.today(),
         expected_end_date=expected_end_date
     )
     
@@ -607,15 +614,18 @@ def create_stage(project_id: int):
     db.session.commit()
     
     if is_email_enabled() and responsible_user_id:
-        responsible_user = User.query.get(responsible_user_id)
-        if responsible_user and responsible_user.email:
-            send_stage_assignment_email(
-                responsible_user.email,
-                responsible_user.full_name,
-                stage.name,
-                project.name,
-                expected_end_date,
-            )
+        try:
+            responsible_user = User.query.get(responsible_user_id)
+            if responsible_user and responsible_user.email:
+                send_stage_assignment_email(
+                    responsible_user.email,
+                    responsible_user.full_name,
+                    stage.name,
+                    project.name,
+                    expected_end_date,
+                )
+        except Exception as e:
+            logger.warning(f"Failed to send stage assignment email: {e}")
     
     return jsonify(stage.to_dict()), 201
 

@@ -22,7 +22,7 @@ class EmailConfig:
         self.smtp_server = self.config.get('EMAIL', 'SMTP_SERVER', fallback='smtp.gmail.com')
         self.smtp_port = self.config.getint('EMAIL', 'SMTP_PORT', fallback=587)
         self.username = self.config.get('EMAIL', 'SMTP_USERNAME', fallback='')
-        self.password = self.config.get('EMAIL', 'SMTP_PASSWORD', fallback='')
+        self.password = self.config.get('EMAIL', 'SMTP_PASSWORD', fallback='').replace(' ', '')
         self.from_name = self.config.get('EMAIL', 'FROM_NAME', fallback='Development Tracking System')
         self.from_email = self.config.get('EMAIL', 'FROM_EMAIL', fallback=self.username)
         self.use_tls = self.config.getboolean('EMAIL', 'USE_TLS', fallback=True)

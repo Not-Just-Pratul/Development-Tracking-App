@@ -80,20 +80,17 @@ def create_app():
         """Global exception handler to ensure database cleanup"""
         try:
             db.session.rollback()
-        except:
+        except Exception:
             pass
         
-        # Suppress Chrome DevTools 404 errors silently
         from werkzeug.exceptions import NotFound
         from flask import request
         if isinstance(e, NotFound):
-            # Check if it's a Chrome DevTools request
             if '.well-known' in request.path or 'devtools' in request.path.lower():
                 return '', 404
         
-        # Log and re-raise other exceptions
-        logger.error(f"Unhandled exception: {e}")
-        raise
+        logger.error("Unhandled exception: %s", e, exc_info=True)
+        return jsonify({'error': 'Internal server error'}), 500
     
     app.register_blueprint(api_bp)
     app.register_blueprint(auth_bp)
