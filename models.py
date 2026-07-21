@@ -556,7 +556,7 @@ class Project(TimestampMixin):
             'progress_percent': self.progress_percent,
         }
         if include_children:
-            data['phases'] = [p.to_dict(include_children=False) for p in self.phases]
+            data['phases'] = [p.to_dict(include_children=True) for p in self.phases]
         return data
 
 
