@@ -1799,6 +1799,7 @@ async function saveUser(event, userId = null) {
         designation: formData.get('designation')?.trim() || '',
         department_id: formData.get('department_id') ? parseInt(formData.get('department_id'), 10) : null,
         date_of_joining: formData.get('date_of_joining')?.trim() || '',
+        location_id: locations.length > 0 ? locations[0] : null,
         locations: locations,
         companies: companies,
         departments: departments,
@@ -2999,6 +3000,9 @@ async function loadDesignationsData() {
         const sortedDesignations = (data.designations || []).sort((a, b) => {
             return (a.name || '').localeCompare(b.name || '');
         });
+        
+        // Always store in global variable before rendering
+        window.allDesignations = sortedDesignations;
         
         displayDesignations(sortedDesignations);
     } catch (error) {

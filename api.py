@@ -1568,6 +1568,9 @@ def create_settings_user():
         departments = data.get('departments', [])
         applications = data.get('applications', [])
         
+        # Use first selected location as primary location_id
+        location_id = locations[0] if locations and len(locations) > 0 else None
+        
         if not username or not password:
             return jsonify({'error': 'Username and password are required'}), 400
         
@@ -1589,10 +1592,10 @@ def create_settings_user():
             
             try:
                 cur.execute("""
-                    INSERT INTO users (username, password_hash, full_name, role, is_active, created_by, email, employee_id, designation, department_id, date_of_joining)
-                    VALUES (%s, %s, %s, %s, TRUE, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO users (username, password_hash, full_name, role, is_active, created_by, email, employee_id, designation, department_id, location_id, date_of_joining)
+                    VALUES (%s, %s, %s, %s, TRUE, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
-                """, (username, password_hash, full_name, role, created_by, email, employee_id, designation, department_id, date_of_joining))
+                """, (username, password_hash, full_name, role, created_by, email, employee_id, designation, department_id, location_id, date_of_joining))
                 
                 user_id = cur.fetchone()[0]
             except pg8000.exceptions.DatabaseError as db_err:
@@ -1704,6 +1707,10 @@ def update_settings_user(user_id):
             if 'department_id' in data:
                 update_fields.append('department_id = %s')
                 params.append(data['department_id'])
+            
+            if 'location_id' in data:
+                update_fields.append('location_id = %s')
+                params.append(data['location_id'])
             
             if 'date_of_joining' in data:
                 update_fields.append('date_of_joining = %s')
