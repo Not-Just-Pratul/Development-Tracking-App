@@ -51,6 +51,72 @@ def validate_config(config: configparser.ConfigParser) -> None:
     if missing_keys:
         raise ValueError(f"Missing or invalid configuration keys: {missing_keys}")
 
+
+def get_db_config(config: configparser.ConfigParser):
+    """Get database configuration from config.ini or environment variables.
+    
+    Supports two modes:
+    1. Full DATABASE_URL (for cloud providers like Neon, Railway, Supabase)
+    2. Individual HOST/PORT/DBNAME/USER/PASSWORD keys (for local PostgreSQL)
+    
+    Returns dict with: host, port, database, user, password
+    """
+    database_url = os.getenv('DATABASE_URL') or config.get('DATABASE', 'DATABASE_URL', fallback='')
+    
+    if database_url:
+        return _parse_database_url(database_url)
+    
+    # Fall back to individual configuration keys
+    validate_config(config)
+    
+    return {
+        'host': config.get('DATABASE', 'HOST'),
+        'port': int(config.get('DATABASE', 'PORT')),
+        'database': config.get('DATABASE', 'DBNAME'),
+        'user': config.get('DATABASE', 'USER'),
+        'password': config.get('DATABASE', 'PASSWORD')
+    }
+
+
+def _parse_database_url(url: str) -> dict:
+    """Parse a PostgreSQL database URL into connection parameters.
+    
+    Supports URLs like:
+    - postgresql://user:password@host:5432/dbname
+    - postgresql://user:password@host:5432/dbname?sslmode=require
+    - postgres://user:password@host:5432/dbname
+    """
+    import re
+    from urllib.parse import urlparse, parse_qs
+    
+    # Normalize URL
+    url = url.strip()
+    if url.startswith('postgres://'):
+        url = url.replace('postgres://', 'postgresql://', 1)
+    
+    parsed = urlparse(url)
+    
+    # Extract credentials
+    username = parsed.username or ''
+    password = parsed.password or ''
+    
+    # Extract host and port
+    host = parsed.hostname or 'localhost'
+    port = parsed.port or 5432
+    
+    # Extract database name (remove query params)
+    database = parsed.path.lstrip('/')
+    if '?' in database:
+        database = database.split('?')[0]
+    
+    return {
+        'host': host,
+        'port': port,
+        'database': database,
+        'user': username,
+        'password': password
+    }
+
 class SimpleConnectionPool:
     """Enhanced connection pool for pg8000 with improved error handling and performance."""
     
@@ -250,18 +316,18 @@ class DatabaseManager:
                 config = configparser.ConfigParser()
                 config.read(config_path)
                 
-                # Validate configuration
-                validate_config(config)
+                # Get database configuration (supports DATABASE_URL or individual keys)
+                db_config = get_db_config(config)
                 
                 # Create connection pool with optimized settings
                 self.pool = SimpleConnectionPool(
                     minconn=10,
                     maxconn=150,
-                    host=config.get('DATABASE', 'HOST'),
-                    port=int(config.get('DATABASE', 'PORT')),
-                    database=config.get('DATABASE', 'DBNAME'),
-                    user=config.get('DATABASE', 'USER'),
-                    password=config.get('DATABASE', 'PASSWORD')
+                    host=db_config['host'],
+                    port=db_config['port'],
+                    database=db_config['database'],
+                    user=db_config['user'],
+                    password=db_config['password']
                 )
                 
                 self._initialized = True
